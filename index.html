@@ -580,17 +580,31 @@
         </div>
       </div>
 
-      <!-- 独立单行 2：选定年份月度天气状态分布图 (独占一行) -->
-      <div class="p-5 sm:p-6 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-          <h3 class="text-sm sm:text-base font-bold flex items-center gap-2">
-            <i class="fa-solid fa-chart-column text-cyan-300"></i>
-            <span><span id="histSelectedYearTag2">2026</span> 年月度天气状态分布</span>
-          </h3>
-          <span class="text-xs text-white/60">各月晴天、多云/阴天与雨雪天数结构占比</span>
+      <!-- 独立单行 2：选定年份月度天气状态分布矩阵图 (取代原先的柱形图) -->
+      <div class="p-5 sm:p-6 rounded-2xl bg-white/5 border border-white/10 space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-white/10 pb-3.5">
+          <div>
+            <h3 class="text-sm sm:text-base font-bold flex items-center gap-2">
+              <i class="fa-solid fa-table-cells text-sky-300"></i>
+              <span><span id="statusMatrixYearText">2026</span> 年月度天气状态分布矩阵图</span>
+            </h3>
+            <p id="statusMatrixYearNotice" class="text-xs text-white/60 mt-1">
+              各月份晴天、多云/阴天与雨雪天数结构占比热力矩阵 · 悬停单元格查看具体发生天数
+            </p>
+          </div>
+
+          <!-- 状态图例说明 -->
+          <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-white/70">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-amber-400"></span>晴朗无云</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-slate-400"></span>多云 / 阴天</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-sky-400"></span>雨雪天气</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded border border-dashed border-white/40 bg-white/5"></span>未走完</span>
+          </div>
         </div>
-        <div class="w-full h-64 sm:h-72 relative">
-          <canvas id="historicalWeatherStatusChart"></canvas>
+
+        <!-- 天气状态分布矩阵动态渲染容器 (支持横向滑动) -->
+        <div id="weatherStatusMatrixContainer" class="overflow-x-auto no-scrollbar py-1">
+          <!-- 动态注入天气状态分布矩阵表格 -->
         </div>
       </div>
 
@@ -628,7 +642,7 @@
     <section class="space-y-4">
       <div class="flex items-center justify-between">
         <h2 class="text-xl font-extrabold flex items-center gap-2">
-          <i class="fa-solid fa-heart-pulse text-rose-400"></i> 生活气象指数与健康建议
+          <i class="fa-solid fa-shield-heart text-sky-400"></i> 生活气象指数与健康建议
         </h2>
         <span class="text-xs text-white/60">根据今日温湿度与气压综合计算</span>
       </div>
@@ -1373,7 +1387,7 @@
           { title: '感冒指数', level: '少发', desc: '昼夜温差适度，注意夜间保暖预防受凉。', icon: 'fa-hand-holding-medical', color: 'text-emerald-300' },
           { title: '紫外线指数', level: '中等', desc: '外出可涂抹防晒霜并佩戴太阳镜。', icon: 'fa-sun', color: 'text-orange-300' },
           { title: '洗车指数', level: '适宜', desc: '未来几日无强降雨，适宜清洗爱车。', icon: 'fa-car', color: 'text-cyan-300' },
-          { title: '运动指数', level: '极佳', desc: '户外微风拂面，空气清新适宜慢跑骑行。', icon: 'fa-person-running', color: 'text-rose-300' },
+          { title: '运动指数', level: '极佳', desc: '户外微风拂面，空气清新适宜慢跑骑行。', icon: 'fa-person-running', color: 'text-sky-300' },
           { title: '舒适度指数', level: '舒适', desc: '温湿度适宜，体感惬意宜人。', icon: 'fa-face-smile', color: 'text-indigo-300' }
         ]
       };
@@ -1515,7 +1529,7 @@
             { title: '感冒指数', level: '少发', desc: '气温平稳，适度通风换气，增强免疫力。', icon: 'fa-hand-holding-medical', color: 'text-emerald-300' },
             { title: '紫外线指数', level: daily[0].uvIndex > 6 ? '强' : '中等', desc: '日光充沛，外出建议配备防晒防紫外线装备。', icon: 'fa-sun', color: 'text-orange-300' },
             { title: '洗车指数', level: daily[0].precipitationProb > 40 ? '不宜' : '适宜', desc: '近期待雨势稳定后再洗车更持久。', icon: 'fa-car', color: 'text-cyan-300' },
-            { title: '运动指数', level: '适宜', desc: '适合进行羽毛球、慢跑、登山等户外运动。', icon: 'fa-person-running', color: 'text-rose-300' },
+            { title: '运动指数', level: '适宜', desc: '适合进行羽毛球、慢跑、登山等户外运动。', icon: 'fa-person-running', color: 'text-sky-300' },
             { title: '舒适度指数', level: '良好', desc: '气温与空气通透度良好，体感舒适。', icon: 'fa-face-smile', color: 'text-indigo-300' }
           ]
         };
@@ -1689,6 +1703,37 @@
       minGradient.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
       minGradient.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
 
+      // 自定义内置数据标签绘制插件：在折线数据点位清晰标注最高温/最低温数值
+      const trendDataLabelsPlugin = {
+        id: 'trendDataLabelsPlugin',
+        afterDatasetsDraw(chart) {
+          const { ctx } = chart;
+          ctx.save();
+          const fontSize = state.currentRange > 15 ? 10 : 11;
+          ctx.font = `700 ${fontSize}px 'Plus Jakarta Sans', 'Noto Sans SC', sans-serif`;
+          ctx.textAlign = 'center';
+
+          chart.data.datasets.forEach((dataset, datasetIndex) => {
+            const meta = chart.getDatasetMeta(datasetIndex);
+            const isMax = datasetIndex === 0;
+
+            meta.data.forEach((point, index) => {
+              const val = dataset.data[index];
+              if (val !== null && val !== undefined) {
+                const yPos = isMax ? point.y - 10 : point.y + 16;
+                // 绘制背景微晕阴影提升文字辨识度
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+                ctx.fillText(`${val}°`, point.x + 0.5, yPos + 0.5);
+
+                ctx.fillStyle = isMax ? '#fbbf24' : '#38bdf8';
+                ctx.fillText(`${val}°`, point.x, yPos);
+              }
+            });
+          });
+          ctx.restore();
+        }
+      };
+
       state.trendChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
@@ -1702,7 +1747,7 @@
               fill: true,
               tension: 0.38,
               borderWidth: 2.8,
-              pointRadius: state.currentRange > 15 ? 2.5 : 4,
+              pointRadius: state.currentRange > 15 ? 3 : 4.5,
               pointHoverRadius: 6,
               pointBackgroundColor: '#f59e0b',
               pointBorderColor: '#ffffff',
@@ -1716,7 +1761,7 @@
               fill: true,
               tension: 0.38,
               borderWidth: 2.8,
-              pointRadius: state.currentRange > 15 ? 2.5 : 4,
+              pointRadius: state.currentRange > 15 ? 3 : 4.5,
               pointHoverRadius: 6,
               pointBackgroundColor: '#38bdf8',
               pointBorderColor: '#ffffff',
@@ -1724,9 +1769,18 @@
             }
           ]
         },
+        plugins: [trendDataLabelsPlugin],
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          layout: {
+            padding: {
+              top: 22,
+              bottom: 18,
+              left: 6,
+              right: 6
+            }
+          },
           interaction: {
             mode: 'index',
             intersect: false
@@ -2115,89 +2169,173 @@
       });
     }
 
-    // 渲染月度天气状态结构堆叠分布图 (单行)
-    function renderHistoricalStatusChart() {
-      const canvas = document.getElementById('historicalWeatherStatusChart');
-      if (!canvas || !state.historicalData) return;
+    // 渲染选定年份月度天气状态分布矩阵图 (取代原先的柱状图)
+    function renderWeatherStatusMatrix() {
+      const container = document.getElementById('weatherStatusMatrixContainer');
+      if (!container || !state.historicalData) return;
 
-      const selYearData = state.historicalData.years[state.histSelectedYear];
-      if (!selYearData) return;
+      const selYear = state.histSelectedYear;
+      const yearData = state.historicalData.years[selYear];
+      if (!yearData) return;
 
-      const labels = selYearData.months.map(m => {
-        if (m.status === 'pending') return `${m.name}(待观测)`;
-        if (m.status === 'ongoing') return `${m.name}(进行中)`;
-        return m.name;
-      });
+      const titleYearEl = document.getElementById('statusMatrixYearText');
+      if (titleYearEl) titleYearEl.textContent = selYear;
 
-      const sunnyData = selYearData.months.map(m => m.sunnyDays || 0);
-      const cloudyData = selYearData.months.map(m => m.cloudyDays || 0);
-      const rainyData = selYearData.months.map(m => m.rainyDays || 0);
-
-      if (state.histStatusChartInstance) {
-        state.histStatusChartInstance.destroy();
+      const noticeEl = document.getElementById('statusMatrixYearNotice');
+      if (noticeEl) {
+        if (selYear === 2026) {
+          noticeEl.innerHTML = '<span class="text-amber-300 font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>2026年 11-12月天气状态尚未到来，严格保持未走完状态</span>';
+        } else {
+          noticeEl.innerHTML = '<span class="text-emerald-300 font-medium"><i class="fa-solid fa-circle-check mr-1.5"></i>全年 12 个自然月晴雨与多云观测记录完整归档</span>';
+        }
       }
 
-      const ctx = canvas.getContext('2d');
-      state.histStatusChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: '晴天天数',
-              data: sunnyData,
-              backgroundColor: 'rgba(245, 158, 11, 0.85)',
-              borderRadius: 4,
-              stack: 'weatherStack'
-            },
-            {
-              label: '多云/阴天',
-              data: cloudyData,
-              backgroundColor: 'rgba(148, 163, 184, 0.8)',
-              borderRadius: 4,
-              stack: 'weatherStack'
-            },
-            {
-              label: '雨雪天数',
-              data: rainyData,
-              backgroundColor: 'rgba(56, 189, 248, 0.85)',
-              borderRadius: 4,
-              stack: 'weatherStack'
-            }
-          ]
+      // 天气状态类别配置
+      const statusRows = [
+        {
+          id: 'status_sunny',
+          title: '晴朗无云',
+          key: 'sunnyDays',
+          total: yearData.totalSunny,
+          badgeText: '晴天',
+          badgeClass: 'bg-amber-500/20 text-amber-300 border border-amber-400/30',
+          icon: 'fa-sun text-amber-300',
+          getStyle: (days, activeDays) => {
+            if (days === 0) return 'background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.3);';
+            const intensity = Math.min(1, days / Math.max(1, activeDays));
+            const alpha = (0.25 + intensity * 0.7).toFixed(2);
+            return `background: rgba(245, 158, 11, ${alpha}); color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.6); font-weight: 700;`;
+          }
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: 'rgba(15, 23, 42, 0.92)',
-              titleColor: '#fff',
-              cornerRadius: 10,
-              callbacks: {
-                label: (c) => ` ${c.dataset.label}: ${c.parsed.y} 天`
-              }
-            }
-          },
-          scales: {
-            x: {
-              stacked: true,
-              grid: { display: false },
-              ticks: { color: 'rgba(255, 255, 255, 0.65)', font: { size: 10 } }
-            },
-            y: {
-              stacked: true,
-              grid: { color: 'rgba(255, 255, 255, 0.1)' },
-              ticks: {
-                color: 'rgba(255, 255, 255, 0.65)',
-                font: { size: 10 },
-                callback: (v) => `${v}天`
-              }
-            }
+        {
+          id: 'status_cloudy',
+          title: '多云 / 阴天',
+          key: 'cloudyDays',
+          total: yearData.totalCloudy,
+          badgeText: '多云/阴',
+          badgeClass: 'bg-slate-400/20 text-slate-200 border border-slate-300/30',
+          icon: 'fa-cloud text-slate-300',
+          getStyle: (days, activeDays) => {
+            if (days === 0) return 'background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.3);';
+            const intensity = Math.min(1, days / Math.max(1, activeDays));
+            const alpha = (0.22 + intensity * 0.65).toFixed(2);
+            return `background: rgba(148, 163, 184, ${alpha}); color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.6); font-weight: 700;`;
+          }
+        },
+        {
+          id: 'status_rainy',
+          title: '雨雪天气',
+          key: 'rainyDays',
+          total: yearData.totalRainy,
+          badgeText: '雨雪',
+          badgeClass: 'bg-sky-500/20 text-sky-300 border border-sky-400/30',
+          icon: 'fa-cloud-showers-heavy text-sky-300',
+          getStyle: (days, activeDays) => {
+            if (days === 0) return 'background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.3);';
+            const intensity = Math.min(1, days / Math.max(1, activeDays));
+            const alpha = (0.28 + intensity * 0.72).toFixed(2);
+            return `background: rgba(14, 165, 233, ${alpha}); color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.6); font-weight: 700;`;
           }
         }
+      ];
+
+      // 构建天气状态矩阵表格 HTML
+      let html = `
+        <table class="w-full text-left border-collapse min-w-[760px]">
+          <thead>
+            <tr class="border-b border-white/15 text-xs text-white/60">
+              <th class="py-2.5 px-3 font-semibold w-40 text-left">天气状态分类</th>
+      `;
+
+      // 表头月份
+      yearData.months.forEach(m => {
+        let tag = '';
+        if (m.status === 'pending') {
+          tag = '<span class="block text-[10px] text-white/40 font-normal">待观测</span>';
+        } else if (m.status === 'ongoing') {
+          tag = '<span class="block text-[10px] text-amber-300 font-semibold">进行中</span>';
+        }
+        html += `<th class="py-2.5 px-2 text-center font-bold text-xs">${m.name}${tag}</th>`;
       });
+
+      html += `
+              <th class="py-2.5 px-3 text-center font-bold text-sky-300 text-xs w-24">累计天数</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/10 text-xs">
+      `;
+
+      // 渲染 3 种天气状态行
+      statusRows.forEach(row => {
+        html += `
+          <tr class="hover:bg-white/5 transition duration-150">
+            <td class="py-3 px-3 font-semibold text-white/90">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid ${row.icon} text-xs shrink-0"></i>
+                <span class="px-2 py-0.5 rounded text-[11px] font-bold ${row.badgeClass}">${row.badgeText}</span>
+                <span class="text-xs text-white/80 hidden sm:inline">${row.title}</span>
+              </div>
+            </td>
+        `;
+
+        yearData.months.forEach(m => {
+          if (m.status === 'pending') {
+            // 2026 年未走完月份处理
+            html += `
+              <td class="p-1.5 text-center">
+                <div class="w-full py-2 rounded-lg border border-dashed border-white/20 bg-white/[0.02] text-white/30 text-[11px] font-medium" title="${selYear}年${m.name}尚未走完，不采用推测数据填充">
+                  --
+                </div>
+              </td>
+            `;
+          } else {
+            const daysVal = m[row.key] || 0;
+            const style = row.getStyle(daysVal, m.activeDaysCount);
+            const ongoingText = m.status === 'ongoing' ? `<span class="block text-[9px] text-amber-200">/12天</span>` : '';
+            html += `
+              <td class="p-1.5 text-center">
+                <div class="w-full py-2 rounded-lg border border-white/10 shadow-sm transition hover:scale-105 cursor-default flex flex-col items-center justify-center" style="${style}" title="${selYear}年${m.name}: ${row.title} 共 ${daysVal} 天 (占比 ${Math.round((daysVal / m.activeDaysCount) * 100)}%)">
+                  <span class="text-xs font-black tracking-tight">${daysVal}天</span>
+                  ${ongoingText}
+                </div>
+              </td>
+            `;
+          }
+        });
+
+        html += `
+            <td class="py-3 px-3 text-center font-extrabold text-sky-300 text-sm">
+              ${row.total} <span class="text-[11px] text-white/60 font-normal">天</span>
+            </td>
+          </tr>
+        `;
+      });
+
+      // 底部行：状态核验
+      html += `
+          <tr class="bg-white/5 border-t border-white/15 text-[11px] text-white/60">
+            <td class="py-2.5 px-3 font-semibold text-white/70">月度记录状态</td>
+      `;
+
+      yearData.months.forEach(m => {
+        if (m.status === 'pending') {
+          html += `<td class="py-2.5 px-1.5 text-center text-rose-300/80 font-medium">未发生</td>`;
+        } else if (m.status === 'ongoing') {
+          html += `<td class="py-2.5 px-1.5 text-center text-amber-300 font-semibold">实测12天</td>`;
+        } else {
+          html += `<td class="py-2.5 px-1.5 text-center text-white/60">${m.daysInMonth}天全</td>`;
+        }
+      });
+
+      const totalRecordedDays = selYear === 2026 ? (31*5 + 30*3 + 28 + 12) : 365;
+      html += `
+            <td class="py-2.5 px-3 text-center font-bold text-white/80">${totalRecordedDays}天</td>
+          </tr>
+        </tbody>
+      </table>
+      `;
+
+      container.innerHTML = html;
     }
 
     // 渲染各月份气温区间分布热力矩阵图 (独立单行展示)
@@ -2394,7 +2532,7 @@
       if (!state.historicalData) return;
       renderHistoricalMetrics();
       renderHistoricalComparisonChart();
-      renderHistoricalStatusChart();
+      renderWeatherStatusMatrix();
       renderTemperatureTierHeatmap();
     }
 
