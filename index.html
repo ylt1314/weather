@@ -914,7 +914,7 @@
       { name: '西安', country: '中国', latitude: 34.3416, longitude: 108.9398 }
     ];
 
-    // 全国 34 个省级行政区气象热力基准数据集 (附带官方标准行政区划代码 adcode)
+    // 全国 34 个省级行政区及南海诸岛气象热力基准数据集
     const CHINA_PROVINCES = [
       { id: 'beijing', name: '北京', adcode: 110000, capital: '北京', x: 690, y: 310, lat: 39.9042, lon: 116.4074, maxTemp: 24, minTemp: 13, code: 0, humidity: 46, wind: 12, aqi: 32 },
       { id: 'tianjin', name: '天津', adcode: 120000, capital: '天津', x: 715, y: 325, lat: 39.1255, lon: 117.1901, maxTemp: 23, minTemp: 14, code: 1, humidity: 50, wind: 15, aqi: 38 },
@@ -949,7 +949,8 @@
       { id: 'xinjiang', name: '新疆', adcode: 650000, capital: '乌鲁木齐', x: 220, y: 220, lat: 43.8256, lon: 87.6168, maxTemp: 17, minTemp: 5, code: 0, humidity: 30, wind: 12, aqi: 30 },
       { id: 'hongkong', name: '香港', adcode: 810000, capital: '香港', x: 700, y: 635, lat: 22.3193, lon: 114.1694, maxTemp: 30, minTemp: 24, code: 1, humidity: 78, wind: 17, aqi: 26 },
       { id: 'macao', name: '澳门', adcode: 820000, capital: '澳门', x: 685, y: 640, lat: 22.1987, lon: 113.5439, maxTemp: 30, minTemp: 24, code: 1, humidity: 79, wind: 15, aqi: 25 },
-      { id: 'taiwan', name: '台湾', adcode: 710000, capital: '台北', x: 818, y: 595, lat: 25.0330, lon: 121.5654, maxTemp: 29, minTemp: 22, code: 1, humidity: 75, wind: 18, aqi: 24 }
+      { id: 'taiwan', name: '台湾', adcode: 710000, capital: '台北', x: 818, y: 595, lat: 25.0330, lon: 121.5654, maxTemp: 29, minTemp: 22, code: 1, humidity: 75, wind: 18, aqi: 24 },
+      { id: 'nanhai', name: '南海诸岛', adcode: 460300, capital: '三沙', x: 740, y: 720, lat: 16.83, lon: 112.33, maxTemp: 32, minTemp: 26, code: 0, humidity: 82, wind: 16, aqi: 15 }
     ];
 
     // 解析 WMO 天气代码
@@ -1063,7 +1064,7 @@
             }
           },
           series: [{ data: data }]
-        });
+        }, { lazyUpdate: true });
 
         const legendTitle = document.getElementById('legendTitleText');
         if (legendTitle) {
@@ -1087,7 +1088,7 @@
             }
           },
           series: [{ data: data }]
-        });
+        }, { lazyUpdate: true });
 
         const legendTitle = document.getElementById('legendTitleText');
         if (legendTitle) {
@@ -1118,7 +1119,7 @@
       }
     }
 
-    // 重点省份地级市预设经纬度与微气候基准 (用于容灾备用与经纬度定位矫正)
+    // 重点省份地级市预设经纬度与微气候基准
     const PROVINCE_PRESET_CITIES = {
       '浙江': [
         { name: '杭州市', lat: 30.2741, lon: 120.1551, tempOffset: 0 },
@@ -1155,66 +1156,10 @@
         { name: '潮州市', lat: 23.6570, lon: 116.6226, tempOffset: -0.4 },
         { name: '揭阳市', lat: 23.5499, lon: 116.3729, tempOffset: -0.3 },
         { name: '云浮市', lat: 22.9298, lon: 112.0444, tempOffset: -0.2 }
-      ],
-      '四川': [
-        { name: '成都市', lat: 30.5728, lon: 104.0668, tempOffset: 0 },
-        { name: '绵阳市', lat: 31.4675, lon: 104.6791, tempOffset: -1.0 },
-        { name: '自贡市', lat: 29.3390, lon: 104.7784, tempOffset: 1.2 },
-        { name: '攀枝花市', lat: 26.5823, lon: 101.7186, tempOffset: 4.5 },
-        { name: '泸州市', lat: 28.8718, lon: 105.4423, tempOffset: 1.5 },
-        { name: '德阳市', lat: 31.1268, lon: 104.3986, tempOffset: -0.5 },
-        { name: '广元市', lat: 32.4355, lon: 105.8434, tempOffset: -2.0 },
-        { name: '遂宁市', lat: 30.5328, lon: 105.5929, tempOffset: 0.5 },
-        { name: '内江市', lat: 29.5802, lon: 105.0584, tempOffset: 1.0 },
-        { name: '乐山市', lat: 29.5521, lon: 103.7656, tempOffset: 0.8 },
-        { name: '南充市', lat: 30.8378, lon: 106.1107, tempOffset: 0.2 },
-        { name: '眉山市', lat: 30.0759, lon: 103.8485, tempOffset: 0.2 },
-        { name: '宜宾市', lat: 28.7518, lon: 104.6432, tempOffset: 1.8 },
-        { name: '广安市', lat: 30.4560, lon: 106.6332, tempOffset: 0.3 },
-        { name: '达州市', lat: 31.2096, lon: 107.4680, tempOffset: -0.2 },
-        { name: '雅安市', lat: 29.9803, lon: 102.9946, tempOffset: -1.5 },
-        { name: '巴中市', lat: 31.8691, lon: 106.7474, tempOffset: -1.2 },
-        { name: '资阳市', lat: 30.1289, lon: 104.6276, tempOffset: 0.4 },
-        { name: '阿坝藏族羌族自治州', lat: 31.8994, lon: 102.2214, tempOffset: -8.0 },
-        { name: '甘孜藏族自治州', lat: 30.0495, lon: 101.9623, tempOffset: -9.5 },
-        { name: '凉山彝族自治州', lat: 27.8864, lon: 102.2587, tempOffset: 1.0 }
-      ],
-      '江苏': [
-        { name: '南京市', lat: 32.0603, lon: 118.7969, tempOffset: 0 },
-        { name: '无锡市', lat: 31.4912, lon: 120.3119, tempOffset: 0.8 },
-        { name: '徐州市', lat: 34.2048, lon: 117.2841, tempOffset: -2.2 },
-        { name: '常州市', lat: 31.8112, lon: 119.9741, tempOffset: 0.6 },
-        { name: '苏州市', lat: 31.2990, lon: 120.5853, tempOffset: 1.0 },
-        { name: '南通市', lat: 31.9802, lon: 120.8943, tempOffset: 0.2 },
-        { name: '连云港市', lat: 34.5998, lon: 119.2216, tempOffset: -2.0 },
-        { name: '淮安市', lat: 33.5511, lon: 119.0153, tempOffset: -1.0 },
-        { name: '盐城市', lat: 33.3474, lon: 120.1636, tempOffset: -0.8 },
-        { name: '扬州市', lat: 32.3942, lon: 119.4129, tempOffset: -0.2 },
-        { name: '镇江市', lat: 32.1878, lon: 119.4258, tempOffset: 0.1 },
-        { name: '泰州市', lat: 32.4555, lon: 119.9231, tempOffset: -0.2 },
-        { name: '宿迁市', lat: 33.9630, lon: 118.2752, tempOffset: -1.5 }
-      ],
-      '山东': [
-        { name: '济南市', lat: 36.6512, lon: 117.1201, tempOffset: 0 },
-        { name: '青岛市', lat: 36.0671, lon: 120.3826, tempOffset: -1.2 },
-        { name: '淄博市', lat: 36.8135, lon: 118.0549, tempOffset: -0.2 },
-        { name: '枣庄市', lat: 34.8105, lon: 117.3237, tempOffset: 1.0 },
-        { name: '东营市', lat: 37.4339, lon: 118.6747, tempOffset: -0.8 },
-        { name: '烟台市', lat: 37.4638, lon: 121.4479, tempOffset: -1.5 },
-        { name: '潍坊市', lat: 36.7069, lon: 119.1618, tempOffset: -0.4 },
-        { name: '济宁市', lat: 35.4154, lon: 116.5872, tempOffset: 0.8 },
-        { name: '泰安市', lat: 36.2002, lon: 117.0876, tempOffset: -0.3 },
-        { name: '威海市', lat: 37.5131, lon: 122.1205, tempOffset: -2.0 },
-        { name: '日照市', lat: 35.4164, lon: 119.5269, tempOffset: -0.6 },
-        { name: '临沂市', lat: 35.1047, lon: 118.3564, tempOffset: 0.5 },
-        { name: '德州市', lat: 37.4354, lon: 116.3575, tempOffset: -0.5 },
-        { name: '聊城市', lat: 36.4560, lon: 115.9854, tempOffset: -0.1 },
-        { name: '滨州市', lat: 37.3829, lon: 117.9707, tempOffset: -0.6 },
-        { name: '菏泽市', lat: 35.2338, lon: 115.4807, tempOffset: 0.8 }
       ]
     };
 
-    // 生成容灾备用分区多边形 (当外部省份 GeoJSON 网络受限时兜底保障)
+    // 生成容灾备用分区多边形
     function generateFallbackProvinceGeoJson(prov, cityList) {
       const pLon = prov.lon;
       const pLat = prov.lat;
@@ -1251,7 +1196,7 @@
       };
     }
 
-    // 根据省份基准生成辖区内地级市/区县真实微气象推演数据
+    // 根据省份基准生成辖区内地级市微气象推演数据
     function buildProvinceCitiesData(prov, geoJson) {
       const isMax = state.heatmapMode === 'max';
       const features = geoJson.features || [];
@@ -1263,11 +1208,9 @@
         const lon = center[0];
         const lat = center[1];
 
-        // 匹配预设经纬度与温差偏置
         const preset = presetList.find(p => cityName.includes(p.name) || p.name.includes(cityName));
         const customOffset = preset ? preset.tempOffset : 0;
 
-        // 依据相对纬度偏移推演微气候梯度
         const latDiff = (prov.lat - lat) * 0.85;
         const nameSeed = ((cityName.charCodeAt(0) || 1) % 5) - 2;
         const cityMax = Math.round(prov.maxTemp + latDiff + customOffset + nameSeed * 0.4);
@@ -1323,7 +1266,6 @@
           }
         }
 
-        // 容灾兜底策略：若网络受限或无 features，使用本地预设拓扑
         if (!geoJson || !geoJson.features || geoJson.features.length === 0) {
           const presetList = PROVINCE_PRESET_CITIES[prov.name] || [
             { name: `${prov.capital}市`, lat: prov.lat, lon: prov.lon, tempOffset: 0 },
@@ -1336,7 +1278,6 @@
           state.provinceGeoCache[prov.adcode] = geoJson;
         }
 
-        // 统一规范 feature 名称
         geoJson.features.forEach(f => {
           if (f.properties && f.properties.name) {
             f.properties.name = f.properties.name.trim();
@@ -1350,7 +1291,6 @@
         buildProvinceCitiesData(prov, geoJson);
         renderProvinceMap();
 
-        // 联动切换当前预报城市至该省省会
         const cleanCapital = prov.capital.replace(/市|区|特别行政区|自治州/g, '');
         state.currentCity = {
           name: cleanCapital,
@@ -1360,7 +1300,6 @@
         };
         fetchWeatherData(state.currentCity);
 
-        // 更新地图外层标题、指示与面包屑状态
         const backBtn = document.getElementById('backToChinaBtn');
         if (backBtn) backBtn.classList.remove('hidden');
 
@@ -1381,7 +1320,7 @@
         if (mapBadge) mapBadge.textContent = '地级市高精度下钻';
 
         const mapSubtitle = document.getElementById('mapSubtitleText');
-        if (mapSubtitle) mapSubtitle.textContent = `当前展示【${prov.name}】下辖各市（区）气温分布 · 悬停查看市级明细 · 点击直接切换全站预报`;
+        if (mapSubtitle) mapSubtitle.textContent = `当前展示【${prov.name}】下辖各市气温分布 · 悬停查看市级明细 · 点击直接切换全站预报`;
 
         const legendTitle = document.getElementById('legendTitleText');
         if (legendTitle) {
@@ -1586,15 +1525,62 @@
       showToast('已返回全国气温热力分布地图', 'info');
     }
 
-    // 初始化构建高颜值且标准地理区划的中国气温热力地图
+    // 净化与轻量化 GeoJSON：剥离九段线，保留并显式标注南海诸岛
+    function sanitizeChinaGeoJson(geojson) {
+      if (!geojson || !geojson.features) return geojson;
+
+      // 1. 过滤九段线、十段线以及无名称纯线段，彻底去掉九段线
+      geojson.features = geojson.features.filter(f => {
+        const name = (f.properties && (f.properties.name || f.properties.NAME)) || '';
+        if (name === '九段线' || name === '十段线' || name.includes('段线') || name.includes('Line')) {
+          return false;
+        }
+        if (f.geometry && (f.geometry.type === 'LineString' || f.geometry.type === 'MultiLineString')) {
+          return false;
+        }
+        return true;
+      });
+
+      // 2. 规范化各省份名称以匹配气象数据集
+      geojson.features.forEach(f => {
+        const raw = (f.properties && (f.properties.name || f.properties.NAME)) || '';
+        const matched = findProvinceByName(raw);
+        if (matched) {
+          f.properties.name = matched.name;
+        }
+      });
+
+      // 3. 标注南海诸岛：确保南海诸岛气象几何要素与中心锚点存在
+      const hasNanhai = geojson.features.some(f => f.properties && f.properties.name && f.properties.name.includes('南海诸岛'));
+      if (!hasNanhai) {
+        geojson.features.push({
+          type: 'Feature',
+          properties: {
+            name: '南海诸岛',
+            center: [115.5, 15.5]
+          },
+          geometry: {
+            type: 'MultiPolygon',
+            coordinates: [
+              [[[112.1, 16.9], [112.5, 16.9], [112.5, 16.5], [112.1, 16.5], [112.1, 16.9]]],
+              [[[114.0, 15.9], [114.4, 15.9], [114.4, 15.5], [114.0, 15.5], [114.0, 15.9]]],
+              [[[115.2, 11.3], [115.6, 11.3], [115.6, 10.9], [115.2, 10.9], [115.2, 11.3]]]
+            ]
+          }
+        });
+      }
+
+      return geojson;
+    }
+
+    // 初始化构建高颜值、极速响应且标注南海诸岛的中国气温热力地图
     function buildEchartsInstance() {
       const container = document.getElementById('chinaEchartsContainer');
       if (!container) return;
 
-      if (chinaMapChart) {
-        chinaMapChart.dispose();
+      if (!chinaMapChart) {
+        chinaMapChart = echarts.init(container, null, { renderer: 'canvas' });
       }
-      chinaMapChart = echarts.init(container);
 
       const isMax = state.heatmapMode === 'max';
       const data = getProvinceMapData();
@@ -1603,13 +1589,15 @@
 
       const option = {
         backgroundColor: '#ffffff', // 全国气温热力分布地图底纹色设置为纯白色
+        animationDuration: 300,      // 轻快动画时长提升首屏响应性能
+        animationDurationUpdate: 250,
         tooltip: {
           trigger: 'item',
           backgroundColor: 'rgba(15, 23, 42, 0.94)',
           borderColor: 'rgba(255, 255, 255, 0.25)',
           borderWidth: 1,
           padding: 0,
-          extraCssText: 'backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 1.25rem; box-shadow: 0 24px 48px -12px rgba(0,0,0,0.6); pointer-events: none; z-index: 50;',
+          extraCssText: 'backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 1.25rem; box-shadow: 0 16px 36px -10px rgba(0,0,0,0.45); pointer-events: none; z-index: 50;',
           formatter: function (params) {
             let d = params.data;
             if (!d) {
@@ -1622,7 +1610,7 @@
                 <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 8px; margin-bottom: 10px;">
                   <div>
                     <span style="font-weight: 800; font-size: 16px; letter-spacing: 0.5px;">${d.name}</span>
-                    <span style="font-size: 11px; color: rgba(255,255,255,0.65); margin-left: 6px;">省会/代表站: ${d.capital}</span>
+                    <span style="font-size: 11px; color: rgba(255,255,255,0.65); margin-left: 6px;">代表站: ${d.capital}</span>
                   </div>
                   <i class="fa-solid ${wInfo.icon}" style="font-size: 20px;"></i>
                 </div>
@@ -1661,7 +1649,7 @@
               : ['#1e40af', '#3b82f6', '#38bdf8', '#34d399', '#facc15', '#f97316']
           },
           textStyle: {
-            color: '#334155', // 深石板灰字色，确保在白色底纹画布上清晰醒目
+            color: '#334155',
             fontSize: 11,
             fontWeight: 700
           },
@@ -1669,11 +1657,43 @@
           itemHeight: 180,
           calculable: false
         },
+        graphic: [
+          {
+            type: 'group',
+            right: 22,
+            bottom: 24,
+            children: [
+              {
+                type: 'rect',
+                z: 10,
+                shape: { width: 96, height: 32, r: 8 },
+                style: {
+                  fill: 'rgba(255, 255, 255, 0.95)',
+                  stroke: 'rgba(203, 213, 225, 0.9)',
+                  lineWidth: 1.2,
+                  shadowColor: 'rgba(0, 0, 0, 0.08)',
+                  shadowBlur: 4
+                }
+              },
+              {
+                type: 'text',
+                z: 11,
+                left: 10,
+                top: 8,
+                style: {
+                  text: '🏝️ 南海诸岛',
+                  fill: '#0f172a',
+                  font: 'bold 12px "Plus Jakarta Sans", "Noto Sans SC", sans-serif'
+                }
+              }
+            ]
+          }
+        ],
         series: [
           {
             name: '气温热力分布',
             type: 'map',
-            map: 'china',
+            map: 'china_fast',
             roam: false,
             zoom: 1.18,
             aspectScale: 0.78,
@@ -1682,7 +1702,7 @@
               color: '#0f172a',
               fontSize: 10,
               fontWeight: 700,
-              textBorderColor: '#ffffff', // 边缘白色光晕描边，提升在任何热力色块上的辨识度
+              textBorderColor: '#ffffff',
               textBorderWidth: 2,
               formatter: function (params) {
                 let d = params.data;
@@ -1696,9 +1716,8 @@
             itemStyle: {
               borderColor: 'rgba(0, 0, 0, 0.22)',
               borderWidth: 1,
-              areaColor: '#ffffff', // 省份默认基底色设置为白色
-              shadowColor: 'rgba(0, 0, 0, 0.08)',
-              shadowBlur: 8
+              areaColor: '#ffffff',
+              shadowBlur: 0
             },
             emphasis: {
               label: {
@@ -1710,10 +1729,10 @@
                 textBorderWidth: 2.5
               },
               itemStyle: {
-                borderColor: '#1e293b',
+                borderColor: '#0f172a',
                 borderWidth: 2,
-                shadowColor: 'rgba(0, 0, 0, 0.25)',
-                shadowBlur: 14
+                shadowColor: 'rgba(0, 0, 0, 0.16)',
+                shadowBlur: 4
               }
             },
             select: {
@@ -1726,11 +1745,9 @@
 
       chinaMapChart.setOption(option, true);
 
-      // 地图点击事件联动 (全国层级点击下钻，地级市层级点击切换预报)
       chinaMapChart.off('click');
       chinaMapChart.on('click', function (params) {
         if (state.currentMapLevel === 'country') {
-          // 全国层级：下钻至地级市 (同时兼容 params.data 与模糊名称查找)
           let prov = params.data || findProvinceByName(params.name);
           if (prov) {
             drillDownProvince(prov);
@@ -1738,7 +1755,6 @@
             showToast(`已选定区域【${params.name}】`, 'info');
           }
         } else if (state.currentMapLevel === 'province') {
-          // 地级市层级：直接切换为该市气象预报
           let city = params.data;
           if (!city) {
             city = state.currentCityDataList.find(c => c.name === params.name || params.name.includes(c.name) || c.name.includes(params.name));
@@ -1760,51 +1776,68 @@
       }
     }
 
-    // 初始化全国地图数据加载
-    function initChinaTemperatureHeatMap() {
+    // 高速多级地图加载引擎
+    async function initChinaTemperatureHeatMap() {
       const container = document.getElementById('chinaEchartsContainer');
       if (!container || !window.echarts) return;
 
-      // 绑定返回全国按钮与面包屑全国节点点击
       const backBtn = document.getElementById('backToChinaBtn');
-      if (backBtn) {
-        backBtn.addEventListener('click', backToChinaMap);
-      }
+      if (backBtn) backBtn.addEventListener('click', backToChinaMap);
       const crumbChinaBtn = document.getElementById('crumbChinaBtn');
-      if (crumbChinaBtn) {
-        crumbChinaBtn.addEventListener('click', backToChinaMap);
-      }
+      if (crumbChinaBtn) crumbChinaBtn.addEventListener('click', backToChinaMap);
 
-      if (echarts.getMap && echarts.getMap('china')) {
+      if (echarts.getMap && echarts.getMap('china_fast')) {
         buildEchartsInstance();
-      } else {
-        const loadingMask = document.getElementById('mapLoadingMask');
-        if (loadingMask) loadingMask.classList.remove('opacity-0');
-
-        // 如本地或环境未注册 china，则通过阿里云 DataV 高德 GeoJSON 自动挂载
-        fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
-          .then(res => res.json())
-          .then(geojson => {
-            // 归一化省份名称以严格匹配 CHINA_PROVINCES
-            if (geojson && geojson.features) {
-              geojson.features.forEach(f => {
-                const raw = f.properties.name || '';
-                const matched = findProvinceByName(raw);
-                if (matched) {
-                  f.properties.name = matched.name;
-                }
-              });
-            }
-            echarts.registerMap('china', geojson);
-            if (loadingMask) loadingMask.classList.add('opacity-0');
-            buildEchartsInstance();
-          })
-          .catch(err => {
-            console.warn('Map boundary auto-fetch error, using fallback registration:', err);
-            if (loadingMask) loadingMask.classList.add('opacity-0');
-            buildEchartsInstance();
-          });
+        return;
       }
+
+      if (window._cachedChinaGeoJson) {
+        echarts.registerMap('china_fast', window._cachedChinaGeoJson);
+        buildEchartsInstance();
+        return;
+      }
+
+      const loadingMask = document.getElementById('mapLoadingMask');
+      if (loadingMask) loadingMask.classList.remove('opacity-0');
+
+      const FAST_GEOJSON_SOURCES = [
+        'https://cdn.jsdelivr.net/npm/echarts-joule@4.8.0/map/json/china.json',
+        'https://fastly.jsdelivr.net/npm/echarts-joule@4.8.0/map/json/china.json',
+        'https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json'
+      ];
+
+      let rawGeoJson = null;
+      for (const url of FAST_GEOJSON_SOURCES) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 1800);
+          const res = await fetch(url, { signal: controller.signal });
+          clearTimeout(timeoutId);
+          if (res.ok) {
+            rawGeoJson = await res.json();
+            if (rawGeoJson && rawGeoJson.features && rawGeoJson.features.length > 0) {
+              break;
+            }
+          }
+        } catch (e) {
+          // 快速切换至下一可用源
+        }
+      }
+
+      if (rawGeoJson) {
+        const cleanGeoJson = sanitizeChinaGeoJson(rawGeoJson);
+        window._cachedChinaGeoJson = cleanGeoJson;
+        echarts.registerMap('china_fast', cleanGeoJson);
+      } else {
+        if (echarts.getMap && echarts.getMap('china')) {
+          const defaultGeo = echarts.getMap('china').geoJson;
+          const cleanGeoJson = sanitizeChinaGeoJson(defaultGeo);
+          echarts.registerMap('china_fast', cleanGeoJson);
+        }
+      }
+
+      if (loadingMask) loadingMask.classList.add('opacity-0');
+      buildEchartsInstance();
     }
 
     // 热力图最高温 / 最低温模式切换按钮事件绑定
@@ -1962,7 +1995,7 @@
       };
     }
 
-    // 核心接口获取气象数据 (Open-Meteo 真实接口 + 自动扩展补全至 30 天)
+    // 核心接口获取气象数据
     async function fetchWeatherData(city) {
       setLoading(true);
       const updateEl = document.getElementById('updateTimeText');
@@ -1979,7 +2012,6 @@
         const dailyRaw = data.daily;
         const daily = [];
 
-        // 解析前 16 天真实数据
         for (let i = 0; i < dailyRaw.time.length; i++) {
           const dateObj = new Date(dailyRaw.time[i]);
           const code = dailyRaw.weather_code[i];
@@ -2011,7 +2043,6 @@
           });
         }
 
-        // 基于气候模式将数据延伸至完整的 30 天
         const lastDate = new Date(dailyRaw.time[dailyRaw.time.length - 1]);
         const avgMax = daily.reduce((acc, cur) => acc + cur.maxTemp, 0) / daily.length;
         const avgMin = daily.reduce((acc, cur) => acc + cur.minTemp, 0) / daily.length;
@@ -2044,7 +2075,6 @@
           });
         }
 
-        // 解析逐小时数据
         const hourlyRaw = data.hourly;
         const currentIdx = new Date().getHours();
         const hourly = [];
@@ -2059,7 +2089,6 @@
           });
         }
 
-        // 计算白昼轨迹
         const sunriseStr = daily[0].sunriseTime;
         const sunsetStr = daily[0].sunsetTime;
         const currentHourDec = new Date().getHours() + new Date().getMinutes() / 60;
@@ -2117,20 +2146,18 @@
           updateErrEl.textContent = '已切换为气象推演模式';
         }
       } finally {
-        // 同步生成该城市过去10年的历史气象与晴雨数据集
         generateHistoricalDataForCity(city);
         setLoading(false);
         renderAllWeatherViews();
       }
     }
 
-    // 渲染实时天气 Hero 卡片 (加入完备的 null-safe 保护)
+    // 渲染实时天气 Hero 卡片
     function renderHeroCard() {
       if (!state.weatherData) return;
       const { current, sun } = state.weatherData;
       const wInfo = parseWeatherCode(current.weatherCode, current.isDay);
 
-      // 切换页面背景色调
       const body = document.getElementById('appBody');
       if (body) {
         body.className = body.className.replace(/theme-\w+/g, '');
@@ -2144,7 +2171,6 @@
       const currentCountryBadge = document.getElementById('currentCountryBadge');
       if (currentCountryBadge) currentCountryBadge.textContent = state.currentCity.country || '中国';
 
-      // 同步刷新各板块标题中的城市名称
       const forecastCityEl = document.getElementById('forecastCityPrefix');
       if (forecastCityEl) forecastCityEl.textContent = `【${cityName}】`;
 
@@ -2254,11 +2280,9 @@
         const row = document.createElement('div');
         row.className = 'py-3.5 px-2 hover:bg-white/10 rounded-2xl transition cursor-pointer flex flex-col sm:grid sm:grid-cols-12 items-center gap-3 sm:gap-2';
 
-        // 计算当前卡片在全局范围内的温差条起点与宽度百分比
         const barLeftPct = Math.round(((day.minTemp - globalMin) / tempRangeSpan) * 100);
         const barWidthPct = Math.max(12, Math.round(((day.maxTemp - day.minTemp) / tempRangeSpan) * 100));
 
-        // 仅在“今天”的温差条上展示当前温度指示点
         let currentDotHtml = '';
         if (index === 0 && state.weatherData.current) {
           const currTemp = state.weatherData.current.temp;
@@ -2315,7 +2339,6 @@
       const maxTemps = days.map(d => convertTemp(d.maxTemp));
       const minTemps = days.map(d => convertTemp(d.minTemp));
 
-      // 更新单位说明
       document.querySelectorAll('.chartUnitLabel').forEach(el => el.textContent = `°${state.unit}`);
 
       if (state.trendChartInstance) {
@@ -2331,7 +2354,6 @@
       minGradient.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
       minGradient.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
 
-      // 自定义内置数据标签绘制插件：在折线数据点位清晰标注最高温/最低温数值
       const trendDataLabelsPlugin = {
         id: 'trendDataLabelsPlugin',
         afterDatasetsDraw(chart) {
@@ -2349,7 +2371,6 @@
               const val = dataset.data[index];
               if (val !== null && val !== undefined) {
                 const yPos = isMax ? point.y - 10 : point.y + 16;
-                // 绘制背景微晕阴影提升文字辨识度
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
                 ctx.fillText(`${val}°`, point.x + 0.5, yPos + 0.5);
 
@@ -2401,6 +2422,10 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          animation: {
+            duration: 350,
+            easing: 'easeOutQuart'
+          },
           layout: {
             padding: {
               top: 22,
@@ -2508,7 +2533,6 @@
           const daysInMonth = daysInMonthList[m - 1];
           const isYear2026 = (y === 2026);
 
-          // 核心逻辑：2026年数据尚未走完，1-9月已完成，10月进行中，11-12月尚未走完，不根据历史预填
           let monthStatus = 'completed';
           let activeDaysCount = daysInMonth;
 
@@ -2518,10 +2542,10 @@
               activeDaysCount = daysInMonth;
             } else if (m === 10) {
               monthStatus = 'ongoing';
-              activeDaysCount = 12; // 截至10月中旬
+              activeDaysCount = 12;
             } else {
               monthStatus = 'pending';
-              activeDaysCount = 0; // 11-12月未到来，天数设为0，保持未走完状态
+              activeDaysCount = 0;
             }
           }
 
@@ -2546,14 +2570,12 @@
             if (monthMax > extremeMax) extremeMax = monthMax;
             if (monthMin < extremeMin) extremeMin = monthMin;
 
-            // 天气状态天数结构统计
             const rainFactor = Math.max(0.12, Math.sin((m - 2) / 12 * Math.PI) * 0.35);
             rainyDays = Math.max(1, Math.min(activeDaysCount - 3, Math.round(activeDaysCount * rainFactor + Math.sin(y * 3 + m) * 1.5)));
             sunnyDays = Math.max(2, Math.round((activeDaysCount - rainyDays) * (0.55 + Math.sin(y + m * 0.7) * 0.08)));
             cloudyDays = Math.max(0, activeDaysCount - rainyDays - sunnyDays);
             precipMm = Math.round(rainyDays * (7 + Math.abs(Math.sin(m * 1.7)) * 10));
 
-            // 计算该月在各气温区间（>=30°C, 20-30°C, 10-20°C, <10°C）的天数分布
             dAbove30 = 0;
             d20to30 = 0;
             d10to20 = 0;
@@ -2647,7 +2669,6 @@
       const yearData = state.historicalData.years[selYear];
       if (!yearData) return;
 
-      // 保证各板块城市名称与当前选定城市保持一致
       const cityName = state.currentCity.name;
       const histCityEl = document.getElementById('histCityTitleBadge');
       if (histCityEl) histCityEl.textContent = `【${cityName}】`;
@@ -2710,7 +2731,7 @@
 
       const selYear = state.histSelectedYear;
       const compYear = state.histCompareYear;
-      const metric = state.histMetric; // 'avg', 'max', 'min'
+      const metric = state.histMetric;
 
       const selData = state.historicalData.years[selYear];
       const compData = state.historicalData.years[compYear];
@@ -2777,6 +2798,10 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          animation: {
+            duration: 350,
+            easing: 'easeOutQuart'
+          },
           interaction: {
             mode: 'index',
             intersect: false
@@ -2814,7 +2839,6 @@
     function getPast3YearsMonthData(monthNum, key, selYear) {
       if (!state.historicalData || !state.historicalData.years) return [];
       const pastYears = [];
-      // 优先获取选定年份的前3个自然年份 (selYear - 1, selYear - 2, selYear - 3)
       for (let offset = 1; offset <= 3; offset++) {
         const targetY = selYear - offset;
         if (state.historicalData.years[targetY]) {
@@ -2829,7 +2853,6 @@
         }
       }
 
-      // 若历史数据不足3年（如基准年份选在 2017/2018），则补充数据集中已有的其他年份保证3年对比参考
       if (pastYears.length < 3) {
         for (let y = 2026; y >= 2017 && pastYears.length < 3; y--) {
           if (y !== selYear && !pastYears.some(p => p.year === y)) {
@@ -2850,6 +2873,9 @@
     }
 
     // 矩阵浮层 Tooltip 定位与交互管理
+    let tooltipCachedSize = { width: 280, height: 180 };
+    let tooltipRafPending = false;
+
     function showMatrixTooltip(e, contentHtml) {
       const tooltip = document.getElementById('matrixHoverTooltip');
       if (!tooltip) return;
@@ -2857,24 +2883,38 @@
       tooltip.classList.remove('hidden');
       tooltip.classList.remove('opacity-0');
       tooltip.classList.add('opacity-100');
+      tooltipCachedSize = {
+        width: tooltip.offsetWidth || 280,
+        height: tooltip.offsetHeight || 180
+      };
       positionMatrixTooltip(e);
     }
 
     function positionMatrixTooltip(e) {
-      const tooltip = document.getElementById('matrixHoverTooltip');
-      if (!tooltip || tooltip.classList.contains('hidden')) return;
-      const pad = 16;
-      let x = e.clientX + pad;
-      let y = e.clientY + pad;
-      const rect = tooltip.getBoundingClientRect();
-      if (x + rect.width > window.innerWidth - 12) {
-        x = e.clientX - rect.width - pad;
-      }
-      if (y + rect.height > window.innerHeight - 12) {
-        y = e.clientY - rect.height - pad;
-      }
-      tooltip.style.left = `${Math.max(12, x)}px`;
-      tooltip.style.top = `${Math.max(12, y)}px`;
+      if (tooltipRafPending) return;
+      tooltipRafPending = true;
+
+      requestAnimationFrame(() => {
+        tooltipRafPending = false;
+        const tooltip = document.getElementById('matrixHoverTooltip');
+        if (!tooltip || tooltip.classList.contains('hidden')) return;
+
+        const pad = 14;
+        let x = e.clientX + pad;
+        let y = e.clientY + pad;
+        const w = tooltipCachedSize.width;
+        const h = tooltipCachedSize.height;
+
+        if (x + w > window.innerWidth - 10) {
+          x = e.clientX - w - pad;
+        }
+        if (y + h > window.innerHeight - 10) {
+          y = e.clientY - h - pad;
+        }
+
+        tooltip.style.left = `${Math.max(10, x)}px`;
+        tooltip.style.top = `${Math.max(10, y)}px`;
+      });
     }
 
     function hideMatrixTooltip() {
@@ -2885,10 +2925,10 @@
         if (tooltip.classList.contains('opacity-0')) {
           tooltip.classList.add('hidden');
         }
-      }, 180);
+      }, 150);
     }
 
-    // 渲染选定年份月度天气状态分布矩阵图 (取代原先的柱状图)
+    // 渲染选定年份月度天气状态分布矩阵图
     function renderWeatherStatusMatrix() {
       const container = document.getElementById('weatherStatusMatrixContainer');
       if (!container || !state.historicalData) return;
@@ -2913,7 +2953,6 @@
         }
       }
 
-      // 天气状态类别配置
       const statusRows = [
         {
           id: 'status_sunny',
@@ -2962,7 +3001,6 @@
         }
       ];
 
-      // 构建天气状态矩阵表格 HTML
       let html = `
         <table class="w-full text-left border-collapse min-w-[760px]">
           <thead>
@@ -2970,7 +3008,6 @@
               <th class="py-2.5 px-3 font-semibold w-40 text-left">天气状态分类</th>
       `;
 
-      // 表头月份
       yearData.months.forEach(m => {
         let tag = '';
         if (m.status === 'pending') {
@@ -2988,7 +3025,6 @@
           <tbody class="divide-y divide-white/10 text-xs">
       `;
 
-      // 渲染 3 种天气状态行
       statusRows.forEach(row => {
         html += `
           <tr class="hover:bg-white/5 transition duration-150">
@@ -3002,13 +3038,11 @@
         `;
 
         yearData.months.forEach(m => {
-          // 提取该月份过去 3 年历史数据
           const pastYearsData = getPast3YearsMonthData(m.month, row.key, selYear);
           const pastRowsSummary = pastYearsData.map(p => `• ${p.year}年: ${p.val}天 (${Math.round((p.val / p.totalDays) * 100)}%)`).join('\n');
           const avg3Year = pastYearsData.length > 0 ? (pastYearsData.reduce((acc, c) => acc + c.val, 0) / pastYearsData.length).toFixed(1) : 0;
 
           if (m.status === 'pending') {
-            // 2026 年未走完月份
             const fallbackTitle = `【${cityName}·${selYear}年 ${m.name}】${row.title}: 尚未走完\n──────────────\n过去3年历史同期数据:\n${pastRowsSummary}\n[3年历史均值: ${avg3Year} 天]`;
             html += `
               <td class="p-1.5 text-center">
@@ -3066,7 +3100,6 @@
         `;
       });
 
-      // 底部行：状态核验
       html += `
           <tr class="bg-white/5 border-t border-white/15 text-[11px] text-white/60">
             <td class="py-2.5 px-3 font-semibold text-white/70">月度记录状态</td>
@@ -3094,7 +3127,7 @@
       bindMatrixHoverEvents(container);
     }
 
-    // 渲染各月份气温区间分布热力矩阵图 (独立单行展示)
+    // 渲染各月份气温区间分布热力矩阵图
     function renderTemperatureTierHeatmap() {
       const container = document.getElementById('temperatureTierMatrixContainer');
       if (!container || !state.historicalData) return;
@@ -3119,7 +3152,6 @@
         }
       }
 
-      // 计算各区间在所选年份内的累计天数
       let totalAbove30 = 0, total20to30 = 0, total10to20 = 0, totalBelow10 = 0;
       yearData.months.forEach(m => {
         if (m.status !== 'pending') {
@@ -3189,7 +3221,6 @@
         }
       ];
 
-      // 构建热力矩阵表格 HTML
       let html = `
         <table class="w-full text-left border-collapse min-w-[760px]">
           <thead>
@@ -3197,7 +3228,6 @@
               <th class="py-2.5 px-3 font-semibold w-40 text-left">气温温度区间</th>
       `;
 
-      // 表头月份
       yearData.months.forEach(m => {
         let tag = '';
         if (m.status === 'pending') {
@@ -3215,7 +3245,6 @@
           <tbody class="divide-y divide-white/10 text-xs">
       `;
 
-      // 4行气温区间数据
       tiers.forEach(tier => {
         html += `
           <tr class="hover:bg-white/5 transition duration-150">
@@ -3228,7 +3257,6 @@
         `;
 
         yearData.months.forEach(m => {
-          // 提取该月份过去 3 年历史数据
           const pastYearsData = getPast3YearsMonthData(m.month, tier.key, selYear);
           const pastRowsSummary = pastYearsData.map(p => `• ${p.year}年: ${p.val}天 (${Math.round((p.val / p.totalDays) * 100)}%)`).join('\n');
           const avg3Year = pastYearsData.length > 0 ? (pastYearsData.reduce((acc, c) => acc + c.val, 0) / pastYearsData.length).toFixed(1) : 0;
@@ -3291,7 +3319,6 @@
         `;
       });
 
-      // 底部行：各月份状态与已走完天数核对
       html += `
           <tr class="bg-white/5 border-t border-white/15 text-[11px] text-white/60">
             <td class="py-2.5 px-3 font-semibold text-white/70">月度记录状态</td>
@@ -3434,7 +3461,6 @@
         });
       }
 
-      // 指标切换（月均温 / 最高温 / 最低温）
       const metricBtns = [
         { id: 'histMetricAvgBtn', metric: 'avg' },
         { id: 'histMetricMaxBtn', metric: 'max' },
@@ -3462,7 +3488,6 @@
       });
     }
 
-    // 辅助计算风向与紫外线级别
     function getWindDirectionText(degree) {
       const directions = ['北风', '东北风', '东风', '东南风', '南风', '西南风', '西风', '西北风'];
       const index = Math.round(((degree % 360) / 45)) % 8;
@@ -3486,7 +3511,6 @@
       }
     }
 
-    // 仿原生 iOS 浮动通知 Toast
     function showToast(msg, type = 'info') {
       const toast = document.getElementById('toastNotification');
       const toastMessage = document.getElementById('toastMessage');
@@ -3512,7 +3536,7 @@
       }, 3200);
     }
 
-    // 城市联想搜索处理 (Open-Meteo Geocoding API + 预设城市本地检索)
+    // 城市联想搜索处理
     let searchDebounceTimer = null;
     const cityInput = document.getElementById('cityInput');
     const searchDropdown = document.getElementById('searchDropdown');
@@ -3615,7 +3639,6 @@
       }
     });
 
-    // 热门城市快捷栏生成
     function initHotCitiesBar() {
       const container = document.getElementById('hotCitiesContainer');
       if (!container) return;
@@ -3633,7 +3656,6 @@
       });
     }
 
-    // 聚合刷新全部界面
     function renderAllWeatherViews() {
       renderHeroCard();
       renderHourlyForecast();
@@ -3644,7 +3666,6 @@
       renderLifeIndices();
     }
 
-    // 7天 / 15天 / 30天 系列切换控制器逻辑
     function setForecastRange(days) {
       if (state.currentRange === days) return;
       state.currentRange = days;
@@ -3674,7 +3695,6 @@
       renderTrendChart();
     }
 
-    // 温度单位切换 (°C / °F)
     const unitCBtn = document.getElementById('unitCBtn');
     const unitFBtn = document.getElementById('unitFBtn');
 
@@ -3700,7 +3720,6 @@
       });
     }
 
-    // 系列周期切换绑定
     const r7 = document.getElementById('range7Btn');
     if (r7) r7.addEventListener('click', () => setForecastRange(7));
     const r15 = document.getElementById('range15Btn');
@@ -3708,13 +3727,11 @@
     const r30 = document.getElementById('range30Btn');
     if (r30) r30.addEventListener('click', () => setForecastRange(30));
 
-    // 刷新按钮
     const refreshBtn = document.getElementById('refreshBtn');
     if (refreshBtn) {
       refreshBtn.addEventListener('click', () => fetchWeatherData(state.currentCity));
     }
 
-    // HTML5 地理定位
     const locateBtn = document.getElementById('locateBtn');
     if (locateBtn) {
       locateBtn.addEventListener('click', () => {
@@ -3757,7 +3774,6 @@
       });
     }
 
-    // 弹窗关闭监听
     const closeModalBtn = document.getElementById('closeModalBtn');
     if (closeModalBtn) closeModalBtn.addEventListener('click', closeDayDetailModal);
     const modalCloseActionBtn = document.getElementById('modalCloseActionBtn');
@@ -3781,7 +3797,6 @@
 
       if (errorTip) errorTip.classList.add('hidden');
 
-      // 验证是否已在下拉框中选择账号
       if (!selectedAccount) {
         if (errorTip && errorMsg) {
           errorMsg.textContent = '请先在下拉列表中选择需要登录的账号 (14599 或 10211)';
@@ -3791,7 +3806,6 @@
         return;
       }
 
-      // 验证是否输入密码
       if (!enteredPassword) {
         if (errorTip && errorMsg) {
           errorMsg.textContent = '请输入该账号对应的登录密码';
@@ -3801,18 +3815,15 @@
         return;
       }
 
-      // 校验账号与密码配对关系 (14599 -> 888888, 10211 -> abc@10211)
       if (AUTH_CREDENTIALS[selectedAccount] === enteredPassword) {
         state.isLoggedIn = true;
         state.currentUser = selectedAccount;
 
-        // 更新顶部工号标识与登出按钮
         const userBadge = document.getElementById('currentUserBadge');
         const userAccountText = document.getElementById('userAccountText');
         if (userBadge) userBadge.classList.remove('hidden');
         if (userAccountText) userAccountText.textContent = selectedAccount;
 
-        // 平滑渐隐并移除登录封面
         const loginCover = document.getElementById('loginCover');
         if (loginCover) {
           loginCover.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
@@ -3852,7 +3863,6 @@
       showToast('已安全退出当前气象登录工号', 'info');
     }
 
-    // 初始化登录控制事件绑定
     function setupLoginPortal() {
       const loginForm = document.getElementById('loginForm');
       if (loginForm) {
@@ -3865,7 +3875,6 @@
       const accountSelect = document.getElementById('loginAccountSelect');
       const passwordInput = document.getElementById('loginPasswordInput');
 
-      // 密码显示 / 隐藏明文切换
       const togglePasswordBtn = document.getElementById('togglePasswordBtn');
       const togglePasswordIcon = document.getElementById('togglePasswordIcon');
       if (togglePasswordBtn && passwordInput) {
@@ -3878,7 +3887,6 @@
         });
       }
 
-      // 快捷凭据测试填充按钮 1 (14599 / 888888)
       const quickFillBtn1 = document.getElementById('quickFillBtn1');
       if (quickFillBtn1) {
         quickFillBtn1.addEventListener('click', () => {
@@ -3890,7 +3898,6 @@
         });
       }
 
-      // 快捷凭据测试填充按钮 2 (10211 / abc@10211)
       const quickFillBtn2 = document.getElementById('quickFillBtn2');
       if (quickFillBtn2) {
         quickFillBtn2.addEventListener('click', () => {
@@ -3902,7 +3909,6 @@
         });
       }
 
-      // 退出登录按钮绑定
       const logoutBtn = document.getElementById('logoutBtn');
       if (logoutBtn) {
         logoutBtn.addEventListener('click', executeLogout);
