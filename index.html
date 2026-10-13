@@ -398,7 +398,8 @@
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 class="text-2xl font-extrabold flex items-center gap-2">
-            <i class="fa-solid fa-calendar-days text-indigo-300"></i> 未来 <span id="forecastRangeTitle">15</span> 天天气趋势预报
+            <i class="fa-solid fa-calendar-days text-indigo-300"></i>
+            <span id="forecastCityPrefix" class="text-amber-300 font-extrabold">【北京市】</span>未来 <span id="forecastRangeTitle">15</span> 天天气趋势预报
           </h2>
           <p class="text-sm text-white/70 mt-0.5">多重气象模式推演 · 包含温差色条与温度走势曲线</p>
         </div>
@@ -459,7 +460,9 @@
             <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center text-base shadow-inner">
               <i class="fa-solid fa-clock-rotate-left"></i>
             </div>
-            <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">过去 10 年气候大数据回溯与跨年动态对比</h2>
+            <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">
+              <span id="histCityTitleBadge" class="text-amber-300 mr-1 font-extrabold">【北京市】</span>过去 10 年气候大数据回溯与跨年动态对比
+            </h2>
             <span class="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30 font-semibold">2017 - 2026</span>
           </div>
           <p class="text-xs sm:text-sm text-white/70 mt-1">
@@ -586,7 +589,7 @@
           <div>
             <h3 class="text-sm sm:text-base font-bold flex items-center gap-2">
               <i class="fa-solid fa-table-cells text-sky-300"></i>
-              <span><span id="statusMatrixYearText">2026</span> 年月度天气状态分布矩阵图</span>
+              <span><span id="statusMatrixCityText" class="text-amber-300 font-extrabold mr-1">北京市</span><span id="statusMatrixYearText">2026</span> 年月度天气状态分布矩阵图</span>
             </h3>
             <p id="statusMatrixYearNotice" class="text-xs text-white/60 mt-1">
               各月份晴天、多云/阴天与雨雪天数结构占比热力矩阵 · 悬停单元格查看具体发生天数
@@ -614,7 +617,7 @@
           <div>
             <h3 class="text-sm sm:text-base font-bold flex items-center gap-2">
               <i class="fa-solid fa-table-cells-large text-orange-400"></i>
-              <span><span id="matrixYearText">2026</span> 年各月份气温区间分布热力矩阵图</span>
+              <span><span id="matrixCityText" class="text-amber-300 font-extrabold mr-1">北京市</span><span id="matrixYearText">2026</span> 年各月份气温区间分布热力矩阵图</span>
             </h3>
             <p id="matrixYearNotice" class="text-xs text-white/60 mt-1">
               各月份气温分级发生天数热力色阶统计 · 悬停单元格查看具体天数与占比
@@ -862,6 +865,11 @@
   <div id="toastNotification" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 glass-card px-5 py-3 rounded-2xl flex items-center gap-3 shadow-2xl text-sm transition-all duration-300 opacity-0 translate-y-8 pointer-events-none border border-white/30">
     <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
     <span id="toastMessage">操作成功</span>
+  </div>
+
+  <!-- 矩阵热力图悬停展示过去3年历史数据专属浮层 Tooltip -->
+  <div id="matrixHoverTooltip" class="fixed z-[120] pointer-events-none opacity-0 transition-opacity duration-200 glass-card rounded-2xl p-4 shadow-2xl border border-white/30 text-white text-xs max-w-xs sm:max-w-sm hidden backdrop-blur-xl">
+    <!-- 动态注入悬停内容 -->
   </div>
 
   <script>
@@ -1559,8 +1567,22 @@
       body.className = body.className.replace(/theme-\w+/g, '');
       body.classList.add(wInfo.theme);
 
-      document.getElementById('currentCityName').textContent = state.currentCity.name;
+      const cityName = state.currentCity.name;
+      document.getElementById('currentCityName').textContent = cityName;
       document.getElementById('currentCountryBadge').textContent = state.currentCity.country || '中国';
+
+      // 同步刷新各板块标题中的城市名称
+      const forecastCityEl = document.getElementById('forecastCityPrefix');
+      if (forecastCityEl) forecastCityEl.textContent = `【${cityName}】`;
+
+      const histCityEl = document.getElementById('histCityTitleBadge');
+      if (histCityEl) histCityEl.textContent = `【${cityName}】`;
+
+      const statusCityEl = document.getElementById('statusMatrixCityText');
+      if (statusCityEl) statusCityEl.textContent = cityName;
+
+      const matrixCityEl = document.getElementById('matrixCityText');
+      if (matrixCityEl) matrixCityEl.textContent = cityName;
 
       const now = new Date();
       document.getElementById('currentDateString').textContent = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 星期${'日一二三四五六'[now.getDay()]} · 实时监测`;
@@ -2019,135 +2041,152 @@
       const yearData = state.historicalData.years[selYear];
       if (!yearData) return;
 
+      // 保证各板块城市名称与当前选定城市保持一致
+      const cityName = state.currentCity.name;
+      const histCityEl = document.getElementById('histCityTitleBadge');
+      if (histCityEl) histCityEl.textContent = `【${cityName}】`;
+      const statusCityEl = document.getElementById('statusMatrixCityText');
+      if (statusCityEl) statusCityEl.textContent = cityName;
+      const matrixCityEl = document.getElementById('matrixCityText');
+      if (matrixCityEl) matrixCityEl.textContent = cityName;
+
       const anomaly = Math.round((yearData.yearAvgTemp - state.historicalData.tenYearMean) * 10) / 10;
       const anomalySign = anomaly >= 0 ? `+${anomaly}` : `${anomaly}`;
 
-      const histAvgTempText = document.getElementById('histAvgTempText');
-      if (histAvgTempText) histAvgTempText.textContent = convertTemp(yearData.yearAvgTemp);
-
-      const histAvgTempHint = document.getElementById('histAvgTempHint');
-      if (histAvgTempHint) {
-        histAvgTempHint.textContent = selYear === 2026 ? '截至10月历史实测均温' : '较10年常年基线偏暖';
-      }
-
-      const histAnomalyBadge = document.getElementById('histAnomalyBadge');
-      if (histAnomalyBadge) {
-        histAnomalyBadge.textContent = `${anomalySign}°C`;
-        histAnomalyBadge.className = anomaly >= 0
+      const anomalyBadge = document.getElementById('histAnomalyBadge');
+      if (anomalyBadge) {
+        anomalyBadge.textContent = `${anomalySign}°C`;
+        anomalyBadge.className = anomaly >= 0
           ? 'text-[10px] px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-300 font-semibold'
-          : 'text-[10px] px-1.5 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 font-semibold';
+          : 'text-[10px] px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-semibold';
       }
 
-      const histExtremeMaxText = document.getElementById('histExtremeMaxText');
-      if (histExtremeMaxText) histExtremeMaxText.textContent = `${convertTemp(yearData.extremeMax)}°`;
-      const histExtremeMinText = document.getElementById('histExtremeMinText');
-      if (histExtremeMinText) histExtremeMinText.textContent = `${convertTemp(yearData.extremeMin)}°`;
+      const avgEl = document.getElementById('histAvgTempText');
+      if (avgEl) avgEl.textContent = yearData.yearAvgTemp;
 
-      const histSunnyDaysText = document.getElementById('histSunnyDaysText');
-      if (histSunnyDaysText) histSunnyDaysText.textContent = yearData.totalSunny;
-      const histSunnyPctText = document.getElementById('histSunnyPctText');
-      if (histSunnyPctText) {
-        const totalBaseDays = selYear === 2026 ? (31*5 + 30*3 + 28 + 12) : 365;
-        histSunnyPctText.textContent = `${Math.round((yearData.totalSunny / totalBaseDays) * 1000) / 10}%`;
+      const avgHint = document.getElementById('histAvgTempHint');
+      if (avgHint) {
+        avgHint.textContent = anomaly >= 0 ? '较10年常年基线偏暖' : '较10年常年基线偏凉';
       }
 
-      const histRainyDaysText = document.getElementById('histRainyDaysText');
-      if (histRainyDaysText) histRainyDaysText.textContent = yearData.totalRainy;
-      const histTotalPrecipText = document.getElementById('histTotalPrecipText');
-      if (histTotalPrecipText) histTotalPrecipText.textContent = yearData.totalPrecip;
+      const exMax = document.getElementById('histExtremeMaxText');
+      if (exMax) exMax.textContent = `${yearData.extremeMax}°C`;
 
-      const t1 = document.getElementById('histSelectedYearTag1');
-      if (t1) t1.textContent = selYear;
-      const t2 = document.getElementById('histSelectedYearTag2');
-      if (t2) t2.textContent = selYear;
-      const tc = document.getElementById('histCompareYearTag');
-      if (tc) tc.textContent = state.histCompareYear;
+      const exMin = document.getElementById('histExtremeMinText');
+      if (exMin) exMin.textContent = `${yearData.extremeMin}°C`;
+
+      const sunnyDays = document.getElementById('histSunnyDaysText');
+      if (sunnyDays) sunnyDays.textContent = yearData.totalSunny;
+
+      const sunnyPct = document.getElementById('histSunnyPctText');
+      if (sunnyPct) {
+        const totalRecorded = selYear === 2026 ? (yearData.totalSunny + yearData.totalRainy + yearData.totalCloudy) : 365;
+        sunnyPct.textContent = `${Math.round((yearData.totalSunny / Math.max(1, totalRecorded)) * 100)}%`;
+      }
+
+      const rainyDays = document.getElementById('histRainyDaysText');
+      if (rainyDays) rainyDays.textContent = yearData.totalRainy;
+
+      const precipEl = document.getElementById('histTotalPrecipText');
+      if (precipEl) precipEl.textContent = yearData.totalPrecip;
+
+      const yearTag1 = document.getElementById('histSelectedYearTag1');
+      if (yearTag1) yearTag1.textContent = selYear;
+
+      const compYearTag = document.getElementById('histCompareYearTag');
+      if (compYearTag) compYearTag.textContent = state.histCompareYear;
     }
 
-    // 渲染跨年逐月温度走势并轨对比图 (单行)
+    // 渲染跨年气温逐月走势并轨对比折线图
     function renderHistoricalComparisonChart() {
       const canvas = document.getElementById('historicalTempComparisonChart');
       if (!canvas || !state.historicalData) return;
 
-      const selYearData = state.historicalData.years[state.histSelectedYear];
-      const compYearData = state.historicalData.years[state.histCompareYear];
-      if (!selYearData || !compYearData) return;
-
+      const selYear = state.histSelectedYear;
+      const compYear = state.histCompareYear;
       const metric = state.histMetric; // 'avg', 'max', 'min'
-      const key = metric === 'max' ? 'maxTemp' : (metric === 'min' ? 'minTemp' : 'avgTemp');
-      const metricLabel = metric === 'max' ? '最高温' : (metric === 'min' ? '最低温' : '月均温');
 
-      const labels = selYearData.months.map(m => m.name);
-      // 2026年 11-12月值为 null，Chart.js 自动断点不连接虚假数据
-      const selData = selYearData.months.map(m => m[key] !== null ? convertTemp(m[key]) : null);
-      const compData = compYearData.months.map(m => m[key] !== null ? convertTemp(m[key]) : null);
-      const baselineData = state.historicalData.baselineMonthlyAvg.map(v => convertTemp(v));
+      const selData = state.historicalData.years[selYear];
+      const compData = state.historicalData.years[compYear];
+      if (!selData || !compData) return;
+
+      const labels = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+      const key = metric === 'avg' ? 'avgTemp' : (metric === 'max' ? 'maxTemp' : 'minTemp');
+      const metricName = metric === 'avg' ? '月均温' : (metric === 'max' ? '最高温' : '最低温');
+
+      const chartTitle = document.getElementById('histComparisonChartTitle');
+      if (chartTitle) {
+        chartTitle.textContent = `${selYear} 与 ${compYear} 气温逐月走势并轨对比 (${metricName})`;
+      }
+
+      const selTemps = selData.months.map(m => m[key]);
+      const compTemps = compData.months.map(m => m[key]);
+      const baselineTemps = state.historicalData.baselineMonthlyAvg;
 
       if (state.histComparisonChartInstance) {
         state.histComparisonChartInstance.destroy();
       }
 
       const ctx = canvas.getContext('2d');
-      const gradSel = ctx.createLinearGradient(0, 0, 0, 260);
-      gradSel.addColorStop(0, 'rgba(245, 158, 11, 0.45)');
-      gradSel.addColorStop(1, 'rgba(245, 158, 11, 0.0)');
-
       state.histComparisonChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
           labels,
           datasets: [
             {
-              label: `${state.histSelectedYear}年 (${metricLabel})`,
-              data: selData,
+              label: `${selYear}年 (${metricName})`,
+              data: selTemps,
               borderColor: '#f59e0b',
-              backgroundColor: gradSel,
-              fill: true,
-              spanGaps: false,
+              backgroundColor: 'rgba(245, 158, 11, 0.1)',
+              borderWidth: 2.5,
               tension: 0.35,
-              borderWidth: 3,
               pointRadius: 4,
               pointBackgroundColor: '#f59e0b',
               pointBorderColor: '#ffffff',
-              pointBorderWidth: 1.5
+              fill: false
             },
             {
-              label: `${state.histCompareYear}年 (${metricLabel})`,
-              data: compData,
+              label: `${compYear}年 (${metricName})`,
+              data: compTemps,
               borderColor: '#38bdf8',
-              backgroundColor: 'transparent',
-              spanGaps: false,
-              borderDash: [5, 4],
+              backgroundColor: 'rgba(56, 189, 248, 0.1)',
+              borderWidth: 2.5,
               tension: 0.35,
-              borderWidth: 2.4,
-              pointRadius: 3.5,
+              pointRadius: 4,
               pointBackgroundColor: '#38bdf8',
-              pointBorderColor: '#ffffff'
+              pointBorderColor: '#ffffff',
+              fill: false
             },
             {
               label: '10年常年基线',
-              data: baselineData,
+              data: baselineTemps,
               borderColor: 'rgba(255, 255, 255, 0.45)',
-              backgroundColor: 'transparent',
-              borderDash: [2, 2],
-              tension: 0.35,
+              borderDash: [5, 5],
               borderWidth: 1.5,
-              pointRadius: 0
+              pointRadius: 0,
+              fill: false
             }
           ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false },
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: 'rgba(15, 23, 42, 0.92)',
-              titleColor: '#fff',
+              backgroundColor: 'rgba(15, 23, 42, 0.9)',
+              titleColor: '#ffffff',
+              bodyColor: '#e2e8f0',
+              borderColor: 'rgba(255, 255, 255, 0.2)',
+              borderWidth: 1,
+              padding: 10,
               cornerRadius: 10,
               callbacks: {
-                label: (c) => c.parsed.y !== null ? ` ${c.dataset.label}: ${c.parsed.y}°${state.unit}` : ` ${c.dataset.label}: 尚未走完`
+                label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y !== null ? ctx.parsed.y + '°C' : '未走完'}`
               }
             }
           },
@@ -2158,15 +2197,89 @@
             },
             y: {
               grid: { color: 'rgba(255, 255, 255, 0.1)' },
-              ticks: {
-                color: 'rgba(255, 255, 255, 0.65)',
-                font: { size: 11 },
-                callback: (v) => `${v}°`
-              }
+              ticks: { color: 'rgba(255, 255, 255, 0.65)', font: { size: 11 }, callback: (v) => `${v}°` }
             }
           }
         }
       });
+    }
+
+    // 辅助获取目标月份在过去 3 年的历史数据
+    function getPast3YearsMonthData(monthNum, key, selYear) {
+      if (!state.historicalData || !state.historicalData.years) return [];
+      const pastYears = [];
+      // 优先获取选定年份的前3个自然年份 (selYear - 1, selYear - 2, selYear - 3)
+      for (let offset = 1; offset <= 3; offset++) {
+        const targetY = selYear - offset;
+        if (state.historicalData.years[targetY]) {
+          const mData = state.historicalData.years[targetY].months[monthNum - 1];
+          if (mData && mData[key] !== null && mData[key] !== undefined) {
+            pastYears.push({
+              year: targetY,
+              val: mData[key],
+              totalDays: mData.activeDaysCount || 30
+            });
+          }
+        }
+      }
+
+      // 若历史数据不足3年（如基准年份选在 2017/2018），则补充数据集中已有的其他年份保证3年对比参考
+      if (pastYears.length < 3) {
+        for (let y = 2026; y >= 2017 && pastYears.length < 3; y--) {
+          if (y !== selYear && !pastYears.some(p => p.year === y)) {
+            const mData = state.historicalData.years[y]?.months[monthNum - 1];
+            if (mData && mData[key] !== null && mData[key] !== undefined) {
+              pastYears.push({
+                year: y,
+                val: mData[key],
+                totalDays: mData.activeDaysCount || 30
+              });
+            }
+          }
+        }
+        pastYears.sort((a, b) => b.year - a.year);
+      }
+
+      return pastYears;
+    }
+
+    // 矩阵浮层 Tooltip 定位与交互管理
+    function showMatrixTooltip(e, contentHtml) {
+      const tooltip = document.getElementById('matrixHoverTooltip');
+      if (!tooltip) return;
+      tooltip.innerHTML = contentHtml;
+      tooltip.classList.remove('hidden');
+      tooltip.classList.remove('opacity-0');
+      tooltip.classList.add('opacity-100');
+      positionMatrixTooltip(e);
+    }
+
+    function positionMatrixTooltip(e) {
+      const tooltip = document.getElementById('matrixHoverTooltip');
+      if (!tooltip || tooltip.classList.contains('hidden')) return;
+      const pad = 16;
+      let x = e.clientX + pad;
+      let y = e.clientY + pad;
+      const rect = tooltip.getBoundingClientRect();
+      if (x + rect.width > window.innerWidth - 12) {
+        x = e.clientX - rect.width - pad;
+      }
+      if (y + rect.height > window.innerHeight - 12) {
+        y = e.clientY - rect.height - pad;
+      }
+      tooltip.style.left = `${Math.max(12, x)}px`;
+      tooltip.style.top = `${Math.max(12, y)}px`;
+    }
+
+    function hideMatrixTooltip() {
+      const tooltip = document.getElementById('matrixHoverTooltip');
+      if (!tooltip) return;
+      tooltip.classList.add('opacity-0');
+      setTimeout(() => {
+        if (tooltip.classList.contains('opacity-0')) {
+          tooltip.classList.add('hidden');
+        }
+      }, 180);
     }
 
     // 渲染选定年份月度天气状态分布矩阵图 (取代原先的柱状图)
@@ -2178,15 +2291,19 @@
       const yearData = state.historicalData.years[selYear];
       if (!yearData) return;
 
+      const cityName = state.currentCity.name;
+      const titleCityEl = document.getElementById('statusMatrixCityText');
+      if (titleCityEl) titleCityEl.textContent = cityName;
+
       const titleYearEl = document.getElementById('statusMatrixYearText');
       if (titleYearEl) titleYearEl.textContent = selYear;
 
       const noticeEl = document.getElementById('statusMatrixYearNotice');
       if (noticeEl) {
         if (selYear === 2026) {
-          noticeEl.innerHTML = '<span class="text-amber-300 font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>2026年 11-12月天气状态尚未到来，严格保持未走完状态</span>';
+          noticeEl.innerHTML = '<span class="text-amber-300 font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>2026年 11-12月天气状态尚未到来，严格保持未走完状态（悬停单元格可对比该月过去3年历史同期）</span>';
         } else {
-          noticeEl.innerHTML = '<span class="text-emerald-300 font-medium"><i class="fa-solid fa-circle-check mr-1.5"></i>全年 12 个自然月晴雨与多云观测记录完整归档</span>';
+          noticeEl.innerHTML = `<span class="text-emerald-300 font-medium"><i class="fa-solid fa-circle-check mr-1.5"></i>【${cityName}】全年 12 个自然月晴雨与多云观测记录完整归档（悬停查看过去3年历史数据对比）</span>`;
         }
       }
 
@@ -2279,11 +2396,28 @@
         `;
 
         yearData.months.forEach(m => {
+          // 提取该月份过去 3 年历史数据
+          const pastYearsData = getPast3YearsMonthData(m.month, row.key, selYear);
+          const pastRowsSummary = pastYearsData.map(p => `• ${p.year}年: ${p.val}天 (${Math.round((p.val / p.totalDays) * 100)}%)`).join('\n');
+          const avg3Year = pastYearsData.length > 0 ? (pastYearsData.reduce((acc, c) => acc + c.val, 0) / pastYearsData.length).toFixed(1) : 0;
+
           if (m.status === 'pending') {
-            // 2026 年未走完月份处理
+            // 2026 年未走完月份
+            const fallbackTitle = `【${cityName}·${selYear}年 ${m.name}】${row.title}: 尚未走完\n──────────────\n过去3年历史同期数据:\n${pastRowsSummary}\n[3年历史均值: ${avg3Year} 天]`;
             html += `
               <td class="p-1.5 text-center">
-                <div class="w-full py-2 rounded-lg border border-dashed border-white/20 bg-white/[0.02] text-white/30 text-[11px] font-medium" title="${selYear}年${m.name}尚未走完，不采用推测数据填充">
+                <div class="matrix-cell-interactive w-full py-2 rounded-lg border border-dashed border-white/20 bg-white/[0.02] text-white/30 text-[11px] font-medium cursor-pointer hover:border-amber-400/50 hover:bg-white/5 transition"
+                  data-city="${cityName}"
+                  data-year="${selYear}"
+                  data-month="${m.name}"
+                  data-type="status"
+                  data-title="${row.title}"
+                  data-badge="${row.badgeText}"
+                  data-badgeclass="${row.badgeClass}"
+                  data-current="未走完 (待观测)"
+                  data-past='${JSON.stringify(pastYearsData)}'
+                  data-avg="${avg3Year}"
+                  title="${fallbackTitle}">
                   --
                 </div>
               </td>
@@ -2292,9 +2426,24 @@
             const daysVal = m[row.key] || 0;
             const style = row.getStyle(daysVal, m.activeDaysCount);
             const ongoingText = m.status === 'ongoing' ? `<span class="block text-[9px] text-amber-200">/12天</span>` : '';
+            const fallbackTitle = `【${cityName}·${selYear}年 ${m.name}】${row.title}: ${daysVal} 天 (${Math.round((daysVal / m.activeDaysCount) * 100)}%)\n──────────────\n过去3年历史同期数据:\n${pastRowsSummary}\n[3年历史均值: ${avg3Year} 天]`;
+
             html += `
               <td class="p-1.5 text-center">
-                <div class="w-full py-2 rounded-lg border border-white/10 shadow-sm transition hover:scale-105 cursor-default flex flex-col items-center justify-center" style="${style}" title="${selYear}年${m.name}: ${row.title} 共 ${daysVal} 天 (占比 ${Math.round((daysVal / m.activeDaysCount) * 100)}%)">
+                <div class="matrix-cell-interactive w-full py-2 rounded-lg border border-white/10 shadow-sm transition hover:scale-105 cursor-pointer flex flex-col items-center justify-center hover:ring-2 hover:ring-amber-300"
+                  style="${style}"
+                  data-city="${cityName}"
+                  data-year="${selYear}"
+                  data-month="${m.name}"
+                  data-type="status"
+                  data-title="${row.title}"
+                  data-badge="${row.badgeText}"
+                  data-badgeclass="${row.badgeClass}"
+                  data-current="${daysVal} 天${m.status === 'ongoing' ? ' (实测12天)' : ''}"
+                  data-ratio="${Math.round((daysVal / m.activeDaysCount) * 100)}%"
+                  data-past='${JSON.stringify(pastYearsData)}'
+                  data-avg="${avg3Year}"
+                  title="${fallbackTitle}">
                   <span class="text-xs font-black tracking-tight">${daysVal}天</span>
                   ${ongoingText}
                 </div>
@@ -2336,6 +2485,7 @@
       `;
 
       container.innerHTML = html;
+      bindMatrixHoverEvents(container);
     }
 
     // 渲染各月份气温区间分布热力矩阵图 (独立单行展示)
@@ -2347,15 +2497,19 @@
       const yearData = state.historicalData.years[selYear];
       if (!yearData) return;
 
+      const cityName = state.currentCity.name;
+      const matrixCityText = document.getElementById('matrixCityText');
+      if (matrixCityText) matrixCityText.textContent = cityName;
+
       const matrixYearText = document.getElementById('matrixYearText');
       if (matrixYearText) matrixYearText.textContent = selYear;
 
       const noticeEl = document.getElementById('matrixYearNotice');
       if (noticeEl) {
         if (selYear === 2026) {
-          noticeEl.innerHTML = '<span class="text-amber-300 font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>2026年 11-12月尚未到来，保持未走完状态（严格不采用历史推测预填）</span>';
+          noticeEl.innerHTML = '<span class="text-amber-300 font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>2026年 11-12月尚未到来，保持未走完状态（悬停单元格可对比该月过去3年历史数据）</span>';
         } else {
-          noticeEl.innerHTML = '<span class="text-emerald-300 font-medium"><i class="fa-solid fa-circle-check mr-1.5"></i>全年 12 个自然月历史气象观测数据均已完整归档</span>';
+          noticeEl.innerHTML = `<span class="text-emerald-300 font-medium"><i class="fa-solid fa-circle-check mr-1.5"></i>【${cityName}】全年 12 个自然月历史气温区间完整归档（悬停查看过去3年历史同期对照）</span>`;
         }
       }
 
@@ -2468,11 +2622,27 @@
         `;
 
         yearData.months.forEach(m => {
+          // 提取该月份过去 3 年历史数据
+          const pastYearsData = getPast3YearsMonthData(m.month, tier.key, selYear);
+          const pastRowsSummary = pastYearsData.map(p => `• ${p.year}年: ${p.val}天 (${Math.round((p.val / p.totalDays) * 100)}%)`).join('\n');
+          const avg3Year = pastYearsData.length > 0 ? (pastYearsData.reduce((acc, c) => acc + c.val, 0) / pastYearsData.length).toFixed(1) : 0;
+
           if (m.status === 'pending') {
-            // 2026年 11-12月未走完状态：独立以虚线与未走完符号展示
+            const fallbackTitle = `【${cityName}·${selYear}年 ${m.name}】${tier.title}: 尚未走完\n──────────────\n过去3年历史同期数据:\n${pastRowsSummary}\n[3年历史均值: ${avg3Year} 天]`;
             html += `
               <td class="p-1.5 text-center">
-                <div class="w-full py-2 rounded-lg border border-dashed border-white/20 bg-white/[0.02] text-white/30 text-[11px] font-medium" title="${selYear}年${m.name}尚未到来，不预填历史推测数据，保持未走完状态">
+                <div class="matrix-cell-interactive w-full py-2 rounded-lg border border-dashed border-white/20 bg-white/[0.02] text-white/30 text-[11px] font-medium cursor-pointer hover:border-rose-400/50 hover:bg-white/5 transition"
+                  data-city="${cityName}"
+                  data-year="${selYear}"
+                  data-month="${m.name}"
+                  data-type="tier"
+                  data-title="${tier.title}"
+                  data-badge="${tier.badgeText}"
+                  data-badgeclass="${tier.badgeClass}"
+                  data-current="未走完 (待观测)"
+                  data-past='${JSON.stringify(pastYearsData)}'
+                  data-avg="${avg3Year}"
+                  title="${fallbackTitle}">
                   --
                 </div>
               </td>
@@ -2481,9 +2651,24 @@
             const daysVal = m[tier.key] || 0;
             const style = tier.getStyle(daysVal, m.activeDaysCount);
             const ongoingText = m.status === 'ongoing' ? `<span class="block text-[9px] text-amber-200">/12天</span>` : '';
+            const fallbackTitle = `【${cityName}·${selYear}年 ${m.name}】${tier.title}: ${daysVal} 天 (${Math.round((daysVal / m.activeDaysCount) * 100)}%)\n──────────────\n过去3年历史同期数据:\n${pastRowsSummary}\n[3年历史均值: ${avg3Year} 天]`;
+
             html += `
               <td class="p-1.5 text-center">
-                <div class="w-full py-2 rounded-lg border border-white/10 shadow-sm transition hover:scale-105 cursor-default flex flex-col items-center justify-center" style="${style}" title="${selYear}年${m.name}: ${tier.title} 共 ${daysVal} 天 (占当期 ${Math.round((daysVal/m.activeDaysCount)*100)}%)">
+                <div class="matrix-cell-interactive w-full py-2 rounded-lg border border-white/10 shadow-sm transition hover:scale-105 cursor-pointer flex flex-col items-center justify-center hover:ring-2 hover:ring-amber-300"
+                  style="${style}"
+                  data-city="${cityName}"
+                  data-year="${selYear}"
+                  data-month="${m.name}"
+                  data-type="tier"
+                  data-title="${tier.title}"
+                  data-badge="${tier.badgeText}"
+                  data-badgeclass="${tier.badgeClass}"
+                  data-current="${daysVal} 天${m.status === 'ongoing' ? ' (实测12天)' : ''}"
+                  data-ratio="${Math.round((daysVal / m.activeDaysCount) * 100)}%"
+                  data-past='${JSON.stringify(pastYearsData)}'
+                  data-avg="${avg3Year}"
+                  title="${fallbackTitle}">
                   <span class="text-xs font-black tracking-tight">${daysVal}天</span>
                   ${ongoingText}
                 </div>
@@ -2525,6 +2710,90 @@
       `;
 
       container.innerHTML = html;
+      bindMatrixHoverEvents(container);
+    }
+
+    // 绑定热力矩阵单元格悬停浮层事件
+    function bindMatrixHoverEvents(container) {
+      if (!container) return;
+      const cells = container.querySelectorAll('.matrix-cell-interactive');
+
+      cells.forEach(cell => {
+        cell.addEventListener('mouseenter', (e) => {
+          const city = cell.dataset.city || state.currentCity.name;
+          const year = cell.dataset.year;
+          const month = cell.dataset.month;
+          const title = cell.dataset.title;
+          const badgeText = cell.dataset.badge;
+          const badgeClass = cell.dataset.badgeclass;
+          const currentText = cell.dataset.current;
+          const ratio = cell.dataset.ratio ? `(占全月 ${cell.dataset.ratio})` : '';
+          const avg = cell.dataset.avg || '0';
+          let past = [];
+
+          try {
+            past = JSON.parse(cell.dataset.past || '[]');
+          } catch (err) {
+            past = [];
+          }
+
+          let pastListHtml = '';
+          if (past && past.length > 0) {
+            pastListHtml = past.map(p => `
+              <div class="flex items-center justify-between py-1 border-b border-white/5 last:border-0">
+                <span class="text-white/70">${p.year} 年历史同期:</span>
+                <span class="font-bold text-white">${p.val} 天 <span class="text-[10px] text-white/50">(${Math.round((p.val / p.totalDays) * 100)}%)</span></span>
+              </div>
+            `).join('');
+          } else {
+            pastListHtml = `<div class="text-white/50 text-[11px] py-1">暂无更多历史比对数据</div>`;
+          }
+
+          const tooltipHtml = `
+            <div>
+              <div class="flex items-center justify-between border-b border-white/15 pb-2 mb-2">
+                <div class="flex items-center gap-1.5 font-bold text-white text-xs">
+                  <i class="fa-solid fa-location-dot text-rose-400"></i>
+                  <span>【${city}】${month} · ${title.split(' ')[0]}</span>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeClass}">${badgeText}</span>
+              </div>
+              
+              <div class="mb-2.5">
+                <div class="text-[10px] text-white/60 mb-0.5">${year}年当前观测:</div>
+                <div class="flex items-baseline gap-1.5">
+                  <span class="text-base font-extrabold text-amber-300">${currentText}</span>
+                  <span class="text-[10px] text-white/50">${ratio}</span>
+                </div>
+              </div>
+
+              <div class="border-t border-white/10 pt-2">
+                <div class="text-[11px] font-semibold text-sky-200 mb-1 flex items-center gap-1.5">
+                  <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
+                  <span>过去 3 年历史同期数据对照:</span>
+                </div>
+                <div class="space-y-0.5">
+                  ${pastListHtml}
+                </div>
+                <div class="mt-2 pt-1.5 border-t border-white/10 flex items-center justify-between text-[10px] text-white/60 font-medium">
+                  <span>3 年历史同期均值:</span>
+                  <span class="font-bold text-white">${avg} 天</span>
+                </div>
+              </div>
+            </div>
+          `;
+
+          showMatrixTooltip(e, tooltipHtml);
+        });
+
+        cell.addEventListener('mousemove', (e) => {
+          positionMatrixTooltip(e);
+        });
+
+        cell.addEventListener('mouseleave', () => {
+          hideMatrixTooltip();
+        });
+      });
     }
 
     // 聚合刷新历史气象视图
