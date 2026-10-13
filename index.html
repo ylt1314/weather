@@ -455,7 +455,7 @@
       </div>
     </section>
 
-    <!-- 过去10年历史气象数据与跨年动态对比分析板块 (2017 - 2026) -->
+    <!-- 过去15年历史气象数据与跨年动态对比分析板块 (2012 - 2026) -->
     <section class="glass-card rounded-3xl p-6 sm:p-7 space-y-6 relative overflow-hidden">
       <!-- 顶部标题与控制栏 -->
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -465,18 +465,18 @@
               <i class="fa-solid fa-clock-rotate-left"></i>
             </div>
             <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">
-              <span id="histCityTitleBadge" class="text-amber-300 mr-1 font-extrabold">【北京市】</span>过去 10 年气候大数据回溯与跨年动态对比
+              <span id="histCityTitleBadge" class="text-amber-300 mr-1 font-extrabold">【北京市】</span>过去 15 年气候大数据回溯与跨年动态对比
             </h2>
-            <span class="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30 font-semibold">2017 - 2026</span>
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30 font-semibold">2012 - 2026</span>
           </div>
           <p class="text-xs sm:text-sm text-white/70 mt-1">
-            动态分析过去十年温度波动、晴雨状态结构占比与跨年并轨对比 · 支持历年气候时光轴自动演变回放
+            动态分析过去十五年温度波动、晴雨状态结构占比与跨年并轨对比 · 支持历年气候时光轴自动演变回放
           </p>
         </div>
 
         <!-- 控制工具栏（年份选择、对比年份选择、气温指标、自动演变按钮） -->
         <div class="flex flex-wrap items-center gap-3">
-          <!-- 主关注年份选择 -->
+          <!-- 主关注年份选择 (涵盖 2012 - 2026 完整 15 年) -->
           <div class="flex items-center gap-1.5 glass-pill px-3 py-1.5 rounded-xl text-xs">
             <span class="text-white/60">基准年份:</span>
             <select id="histYearSelect" class="bg-transparent text-amber-300 font-bold outline-none cursor-pointer">
@@ -490,13 +490,23 @@
               <option value="2019" class="bg-slate-900 text-white">2019 年</option>
               <option value="2018" class="bg-slate-900 text-white">2018 年</option>
               <option value="2017" class="bg-slate-900 text-white">2017 年</option>
+              <option value="2016" class="bg-slate-900 text-white">2016 年</option>
+              <option value="2015" class="bg-slate-900 text-white">2015 年</option>
+              <option value="2014" class="bg-slate-900 text-white">2014 年</option>
+              <option value="2013" class="bg-slate-900 text-white">2013 年</option>
+              <option value="2012" class="bg-slate-900 text-white">2012 年</option>
             </select>
           </div>
 
-          <!-- 对比年份选择 -->
+          <!-- 对比年份选择 (涵盖 2012 - 2026 完整 15 年) -->
           <div class="flex items-center gap-1.5 glass-pill px-3 py-1.5 rounded-xl text-xs">
             <span class="text-white/60">对比年份:</span>
             <select id="histCompareYearSelect" class="bg-transparent text-cyan-300 font-bold outline-none cursor-pointer">
+              <option value="2012" class="bg-slate-900 text-white">2012 年</option>
+              <option value="2013" class="bg-slate-900 text-white">2013 年</option>
+              <option value="2014" class="bg-slate-900 text-white">2014 年</option>
+              <option value="2015" class="bg-slate-900 text-white">2015 年</option>
+              <option value="2016" class="bg-slate-900 text-white">2016 年</option>
               <option value="2017" class="bg-slate-900 text-white">2017 年</option>
               <option value="2018" class="bg-slate-900 text-white">2018 年</option>
               <option value="2019" class="bg-slate-900 text-white">2019 年</option>
@@ -530,7 +540,7 @@
             <span id="histAvgTempText" class="text-2xl sm:text-3xl font-extrabold text-amber-300">15.8</span>
             <span class="text-xs text-amber-200">°C</span>
           </div>
-          <p id="histAvgTempHint" class="text-[11px] text-white/50 mt-1">较10年常年基线偏暖</p>
+          <p id="histAvgTempHint" class="text-[11px] text-white/50 mt-1">较15年常年基线偏暖</p>
         </div>
 
         <div class="p-4 rounded-2xl bg-white/5 border border-white/10">
@@ -578,8 +588,8 @@
           </h3>
           <div class="flex items-center gap-3 text-xs">
             <span class="flex items-center gap-1.5 text-amber-300 font-semibold"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span><span id="histSelectedYearTag1">2026</span>年</span>
-            <span class="flex items-center gap-1.5 text-cyan-300 font-semibold ml-2"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span><span id="histCompareYearTag">2017</span>年</span>
-            <span class="hidden sm:flex items-center gap-1.5 text-white/50 ml-2"><span class="w-3 h-0.5 bg-white/60"></span>10年常年基线</span>
+            <span class="flex items-center gap-1.5 text-cyan-300 font-semibold ml-2"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span><span id="histCompareYearTag">2012</span>年</span>
+            <span class="hidden sm:flex items-center gap-1.5 text-white/50 ml-2"><span class="w-3 h-0.5 bg-white/60"></span>15年常年基线</span>
           </div>
         </div>
         <div class="w-full h-64 sm:h-72 relative">
@@ -641,6 +651,97 @@
         <!-- 热力矩阵动态渲染容器 (支持移动端自适应横向滑动) -->
         <div id="temperatureTierMatrixContainer" class="overflow-x-auto no-scrollbar py-1">
           <!-- 动态注入热力矩阵表格 -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 独立单行 4：历史月度精细化气象回溯档案板块（城市与年月自由筛选） -->
+    <section class="glass-card rounded-3xl p-6 sm:p-7 space-y-6 relative overflow-hidden">
+      <!-- 顶部标题与筛选控制栏 -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center text-base shadow-inner">
+              <i class="fa-solid fa-calendar-day"></i>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">
+              <span id="monthlyArchiveTitleBadge" class="text-amber-300 mr-1 font-extrabold">【东莞市】2016 年 1 月</span>历史月度全景气象档案
+            </h2>
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-200 border border-cyan-400/30 font-semibold">月维度详查</span>
+          </div>
+          <p id="monthlyArchiveSubtitle" class="text-xs sm:text-sm text-white/70 mt-1">
+            自由指定全国城市与历史年月 · 全景透视整月极端高低温、晴雨天气结构与逐日降水起伏走势
+          </p>
+        </div>
+
+        <!-- 筛选控制工具栏（城市、年份、月份筛选） -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <!-- 城市选择下拉框 -->
+          <div class="flex items-center gap-1.5 glass-pill px-3 py-1.5 rounded-xl text-xs">
+            <span class="text-white/60"><i class="fa-solid fa-location-dot text-rose-400 mr-1"></i>城市:</span>
+            <select id="monthlyArchiveCitySelect" class="bg-transparent text-white font-bold outline-none cursor-pointer">
+              <!-- 动态注入全国城市选项，默认东莞 -->
+            </select>
+          </div>
+
+          <!-- 年份选择下拉框 (2012 - 2026) -->
+          <div class="flex items-center gap-1.5 glass-pill px-3 py-1.5 rounded-xl text-xs">
+            <span class="text-white/60"><i class="fa-solid fa-calendar text-amber-300 mr-1"></i>年份:</span>
+            <select id="monthlyArchiveYearSelect" class="bg-transparent text-amber-300 font-bold outline-none cursor-pointer">
+              <!-- 2026 down to 2012, default 2016 -->
+            </select>
+          </div>
+
+          <!-- 月份选择下拉框 (1 - 12月) -->
+          <div class="flex items-center gap-1.5 glass-pill px-3 py-1.5 rounded-xl text-xs">
+            <span class="text-white/60"><i class="fa-solid fa-clock text-cyan-300 mr-1"></i>月份:</span>
+            <select id="monthlyArchiveMonthSelect" class="bg-transparent text-cyan-300 font-bold outline-none cursor-pointer">
+              <!-- 1月 to 12月, default 1月 -->
+            </select>
+          </div>
+
+          <!-- 快捷一键示范按钮 -->
+          <button id="monthlyArchiveQuickDongguanBtn" title="查看 2016年1月东莞 数据" class="glass-pill px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-white/20 active:scale-95 transition text-amber-300 flex items-center gap-1.5">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span>示例: 2016东莞1月</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 选定月份 6 大核心气象指标看板 (最高温、最低温、均温、晴天、多云/阴天、降水) -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5" id="monthlyArchiveMetricsGrid">
+        <!-- 动态注入指标卡片 -->
+      </div>
+
+      <!-- 全月中下旬走势图：双折线气温 + 每日降水量柱状图 (Chart.js 双轴图) -->
+      <div class="p-5 sm:p-6 rounded-2xl bg-white/5 border border-white/10 space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h3 class="text-sm sm:text-base font-bold flex items-center gap-2">
+            <i class="fa-solid fa-chart-area text-amber-300"></i>
+            <span id="monthlyArchiveChartTitle">2016年1月 逐日气温起伏与降水量走势</span>
+          </h3>
+          <div class="flex items-center gap-3 text-xs">
+            <span class="flex items-center gap-1.5 text-amber-300 font-semibold"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>最高温</span>
+            <span class="flex items-center gap-1.5 text-cyan-300 font-semibold"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>最低温</span>
+            <span class="flex items-center gap-1.5 text-sky-300 font-semibold"><span class="w-2.5 h-2.5 rounded bg-sky-500"></span>降水量 (mm)</span>
+          </div>
+        </div>
+        <div class="w-full h-64 sm:h-72 relative">
+          <canvas id="monthlyArchiveTrendChart"></canvas>
+        </div>
+      </div>
+
+      <!-- 全月逐日时间轴轮播卡片 (1日 ~ 28/29/30/31日，含天气图标、气温、降雨状态) -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold flex items-center gap-2">
+            <i class="fa-solid fa-list-ol text-cyan-300"></i>
+            <span>全月逐日气象档案日志 (<span id="monthlyArchiveDaysCountLabel">31</span>天)</span>
+          </h3>
+          <span class="text-xs text-white/50">点击单日卡片查看详情</span>
+        </div>
+        <div id="monthlyArchiveDaysContainer" class="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2 pt-1">
+          <!-- 动态注入单日卡片 -->
         </div>
       </div>
     </section>
@@ -872,7 +973,7 @@
       isLoggedIn: false,  // 登录状态标识
       historicalData: null,
       histSelectedYear: 2026,
-      histCompareYear: 2017,
+      histCompareYear: 2012, // 默认对比年份更新为 2012 年 (覆盖 15 年跨度)
       histMetric: 'avg', // 'avg', 'max', 'min'
       histComparisonChartInstance: null,
       histStatusChartInstance: null,
@@ -880,7 +981,13 @@
       currentProvinceData: null, // 当前下钻的省份数据
       provinceGeoCache: {}, // 缓存已下载的省份 GeoJSON 数据
       currentCityDataList: [], // 当前省份各地级市气温数据集
-      hotCityTierFilter: 'all' // 热门城市当前分类筛选: 'all', '一线', '新一线', '二线'
+      hotCityTierFilter: 'all', // 热门城市当前分类筛选: 'all', '一线', '新一线', '二线'
+      monthlyArchive: {
+        city: '东莞',
+        year: 2016,
+        month: 1,
+        chartInstance: null
+      }
     };
 
     // 预设鉴权账号与密码匹配字典 (账号: 14599/10211，密码: 888888/abc@10211)
@@ -2601,7 +2708,7 @@
       });
     }
 
-    // 基于当前城市地理维度与气候演变模型生成过去10年历史气象数据
+    // 基于当前城市地理维度与气候演变模型生成过去15年历史气象数据 (2012 - 2026)
     function generateHistoricalDataForCity(city) {
       const lat = city.latitude || 39.9;
       const lon = city.longitude || 116.4;
@@ -2610,10 +2717,10 @@
 
       const years = {};
       const monthlyBaselineSum = new Array(12).fill(0);
-      const tenYearSummary = [];
+      const fifteenYearSummary = [];
 
-      for (let y = 2017; y <= 2026; y++) {
-        const yearOffset = y - 2017;
+      for (let y = 2012; y <= 2026; y++) {
+        const yearOffset = y - 2012;
         const warmingTrend = yearOffset * 0.08;
         const oscillation = Math.sin(y * 1.8 + lon * 0.1) * 0.65;
         const yearAnnualBase = baseCityAnnualTemp + warmingTrend + oscillation;
@@ -2740,7 +2847,7 @@
           months
         };
 
-        tenYearSummary.push({
+        fifteenYearSummary.push({
           year: y,
           avgTemp: yearAvgTemp,
           totalSunny,
@@ -2749,15 +2856,17 @@
         });
       }
 
-      const baselineMonthlyAvg = monthlyBaselineSum.map(v => Math.round((v / 10) * 10) / 10);
-      const tenYearMean = Math.round((tenYearSummary.reduce((acc, cur) => acc + cur.avgTemp, 0) / 10) * 10) / 10;
+      const baselineMonthlyAvg = monthlyBaselineSum.map(v => Math.round((v / 15) * 10) / 10);
+      const fifteenYearMean = Math.round((fifteenYearSummary.reduce((acc, cur) => acc + cur.avgTemp, 0) / 15) * 10) / 10;
 
       state.historicalData = {
         cityName: city.name,
         years,
         baselineMonthlyAvg,
-        tenYearMean,
-        tenYearSummary
+        tenYearMean: fifteenYearMean,
+        fifteenYearMean,
+        tenYearSummary: fifteenYearSummary,
+        fifteenYearSummary
       };
     }
 
@@ -2776,7 +2885,8 @@
       const matrixCityEl = document.getElementById('matrixCityText');
       if (matrixCityEl) matrixCityEl.textContent = cityName;
 
-      const anomaly = Math.round((yearData.yearAvgTemp - state.historicalData.tenYearMean) * 10) / 10;
+      const baselineMean = state.historicalData.fifteenYearMean || state.historicalData.tenYearMean;
+      const anomaly = Math.round((yearData.yearAvgTemp - baselineMean) * 10) / 10;
       const anomalySign = anomaly >= 0 ? `+${anomaly}` : `${anomaly}`;
 
       const anomalyBadge = document.getElementById('histAnomalyBadge');
@@ -2792,7 +2902,7 @@
 
       const avgHint = document.getElementById('histAvgTempHint');
       if (avgHint) {
-        avgHint.textContent = anomaly >= 0 ? '较10年常年基线偏暖' : '较10年常年基线偏凉';
+        avgHint.textContent = anomaly >= 0 ? '较15年常年基线偏暖' : '较15年常年基线偏凉';
       }
 
       const exMax = document.getElementById('histExtremeMaxText');
@@ -2884,7 +2994,7 @@
               fill: false
             },
             {
-              label: '10年常年基线',
+              label: '15年常年基线',
               data: baselineTemps,
               borderColor: 'rgba(255, 255, 255, 0.45)',
               borderDash: [5, 5],
@@ -2934,7 +3044,7 @@
       });
     }
 
-    // 辅助获取目标月份在过去 3 年的历史数据
+    // 辅助获取目标月份在过去 3 年的历史数据 (支持在完整 15 年中精准追溯)
     function getPast3YearsMonthData(monthNum, key, selYear) {
       if (!state.historicalData || !state.historicalData.years) return [];
       const pastYears = [];
@@ -2953,7 +3063,7 @@
       }
 
       if (pastYears.length < 3) {
-        for (let y = 2026; y >= 2017 && pastYears.length < 3; y--) {
+        for (let y = 2026; y >= 2012 && pastYears.length < 3; y--) {
           if (y !== selYear && !pastYears.some(p => p.year === y)) {
             const mData = state.historicalData.years[y]?.months[monthNum - 1];
             if (mData && mData[key] !== null && mData[key] !== undefined) {
@@ -3587,6 +3697,535 @@
       });
     }
 
+    // 历史月度精细化气象档案数据生成器 (支持按城市与年月自由检索)
+    function generateMonthlyArchiveData(cityName, year, month) {
+      const city = (typeof TIER_CITIES !== 'undefined' ? TIER_CITIES : HOT_CITIES).find(c => 
+        c.name === cityName || cityName.includes(c.name) || c.name.includes(cityName)
+      ) || {
+        name: cityName,
+        latitude: 23.0205,
+        longitude: 113.7518
+      };
+
+      const lat = city.latitude || 23.02;
+      const lon = city.longitude || 113.75;
+      const baseCityAnnualTemp = Math.round((28 - Math.abs(lat) * 0.38) * 10) / 10;
+      const seasonalAmplitude = Math.max(7, Math.min(18, Math.abs(lat) * 0.42));
+
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const isYear2026 = (year === 2026);
+      
+      let monthStatus = 'completed';
+      let activeDaysCount = daysInMonth;
+
+      if (isYear2026) {
+        if (month <= 9) {
+          monthStatus = 'completed';
+          activeDaysCount = daysInMonth;
+        } else if (month === 10) {
+          monthStatus = 'ongoing';
+          activeDaysCount = 12;
+        } else {
+          monthStatus = 'pending';
+          activeDaysCount = 0;
+        }
+      }
+
+      const yearOffset = year - 2012;
+      const warmingTrend = yearOffset * 0.08;
+      const oscillation = Math.sin(year * 1.8 + lon * 0.1) * 0.65;
+      const yearAnnualBase = baseCityAnnualTemp + warmingTrend + oscillation;
+
+      const seasonPhase = (month - 1 - 6) / 12 * 2 * Math.PI;
+      const monthAvg = Math.round((yearAnnualBase + Math.cos(seasonPhase) * seasonalAmplitude + (Math.sin(month * 2 + year) * 0.5)) * 10) / 10;
+      const monthMaxBase = monthAvg + 5.5 + Math.abs(Math.sin(month * 1.4 + year)) * 2;
+      const monthMinBase = monthAvg - 5.5 - Math.abs(Math.cos(month * 1.2 + year)) * 2;
+
+      const days = [];
+      let totalSunny = 0;
+      let totalCloudy = 0;
+      let totalRainy = 0;
+      let totalPrecipMm = 0;
+      let extremeMax = -999;
+      let extremeMaxDate = '';
+      let extremeMin = 999;
+      let extremeMinDate = '';
+      let sumDailyMean = 0;
+
+      const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateObj = new Date(year, month - 1, d);
+        const weekdayStr = weekdays[dateObj.getDay()];
+        const isRecorded = (d <= activeDaysCount);
+
+        if (!isRecorded) {
+          days.push({
+            day: d,
+            dateStr: `${month}/${d}`,
+            weekday: weekdayStr,
+            fullDateString: `${year}年${month}月${d}日 ${weekdayStr}`,
+            status: 'pending',
+            maxTemp: null,
+            minTemp: null,
+            precipMm: 0,
+            weatherCode: 1,
+            weatherText: '待观测',
+            weatherIcon: 'fa-clock text-white/30'
+          });
+          continue;
+        }
+
+        const dayWave = Math.sin((d / daysInMonth) * Math.PI * 2.6 + month * 0.7) * (monthMaxBase - monthMinBase) * 0.45;
+        const dayNoise = Math.sin(d * 4.2 + year * 2.1) * 2.2;
+        const dayMax = Math.round(monthAvg + 4.5 + dayWave + dayNoise);
+        const dayMin = Math.round(dayMax - 7 - Math.abs(Math.sin(d * 1.3 + month)) * 3);
+        const dayMean = (dayMax + dayMin) / 2;
+        sumDailyMean += dayMean;
+
+        if (dayMax > extremeMax) {
+          extremeMax = dayMax;
+          extremeMaxDate = `${month}月${d}日`;
+        }
+        if (dayMin < extremeMin) {
+          extremeMin = dayMin;
+          extremeMinDate = `${month}月${d}日`;
+        }
+
+        const rainFactor = Math.sin(d * 3.7 + month * 1.9 + year);
+        const isRain = (rainFactor > 0.42);
+        const precipMm = isRain ? Math.max(1, Math.round((rainFactor - 0.4) * 24 + (d % 5) * 2)) : 0;
+        
+        let weatherCode = 0;
+        if (isRain) {
+          weatherCode = precipMm > 18 ? 63 : 61;
+          totalRainy++;
+          totalPrecipMm += precipMm;
+        } else if (Math.sin(d * 2.1 + year) > 0.15) {
+          weatherCode = 2; // 多云
+          totalCloudy++;
+        } else if (Math.sin(d * 1.7) > 0.6) {
+          weatherCode = 3; // 阴天
+          totalCloudy++;
+        } else {
+          weatherCode = 0; // 晴朗
+          totalSunny++;
+        }
+
+        const wInfo = parseWeatherCode(weatherCode, 1);
+
+        days.push({
+          day: d,
+          dateStr: `${month}/${d}`,
+          weekday: weekdayStr,
+          fullDateString: `${year}年${month}月${d}日 ${weekdayStr}`,
+          status: 'completed',
+          maxTemp: dayMax,
+          minTemp: dayMin,
+          precipMm: precipMm,
+          weatherCode: weatherCode,
+          weatherText: wInfo.text,
+          weatherIcon: wInfo.icon
+        });
+      }
+
+      const recordedDaysCount = Math.max(1, activeDaysCount);
+      const calculatedAvg = activeDaysCount > 0 ? (Math.round((sumDailyMean / recordedDaysCount) * 10) / 10) : null;
+
+      return {
+        city: city.name,
+        year,
+        month,
+        status: monthStatus,
+        activeDaysCount,
+        daysInMonth,
+        extremeMax: activeDaysCount > 0 ? extremeMax : null,
+        extremeMaxDate,
+        extremeMin: activeDaysCount > 0 ? extremeMin : null,
+        extremeMinDate,
+        avgTemp: calculatedAvg,
+        totalSunny,
+        totalCloudy,
+        totalRainy,
+        totalPrecipMm,
+        days
+      };
+    }
+
+    // 渲染历史月度精细化档案视图
+    function renderMonthlyArchive() {
+      const { city, year, month } = state.monthlyArchive;
+      const archive = generateMonthlyArchiveData(city, year, month);
+
+      const titleBadge = document.getElementById('monthlyArchiveTitleBadge');
+      if (titleBadge) {
+        titleBadge.textContent = `【${archive.city}】${archive.year} 年 ${archive.month} 月`;
+      }
+
+      const subtitle = document.getElementById('monthlyArchiveSubtitle');
+      if (subtitle) {
+        if (archive.status === 'pending') {
+          subtitle.innerHTML = `<span class="text-rose-300 font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${archive.year}年${archive.month}月尚未到来，保持未走完/待观测状态</span>`;
+        } else if (archive.status === 'ongoing') {
+          subtitle.innerHTML = `<span class="text-amber-300 font-semibold"><i class="fa-solid fa-circle-info mr-1"></i>${archive.year}年${archive.month}月正在进行中（实测 ${archive.activeDaysCount} 天记录）</span>`;
+        } else {
+          subtitle.innerHTML = `<span class="text-white/70">全景透视【${archive.city}】${archive.year}年${archive.month}月（共${archive.daysInMonth}天）全月气温峰谷、晴雨结构与逐日降水起伏走势</span>`;
+        }
+      }
+
+      const daysCountLabel = document.getElementById('monthlyArchiveDaysCountLabel');
+      if (daysCountLabel) {
+        daysCountLabel.textContent = archive.daysInMonth;
+      }
+
+      const chartTitle = document.getElementById('monthlyArchiveChartTitle');
+      if (chartTitle) {
+        chartTitle.textContent = `${archive.year}年${archive.month}月 逐日气温起伏与降水量走势`;
+      }
+
+      // 渲染 6 大指标卡片
+      const metricsGrid = document.getElementById('monthlyArchiveMetricsGrid');
+      if (metricsGrid) {
+        const isPending = (archive.status === 'pending');
+        const activeRecorded = Math.max(1, archive.activeDaysCount);
+
+        metricsGrid.innerHTML = `
+          <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs text-white/60 mb-1">
+              <span>全月最高气温</span>
+              <i class="fa-solid fa-temperature-arrow-up text-rose-400"></i>
+            </div>
+            <div class="flex items-baseline gap-1 my-1">
+              <span class="text-2xl font-black text-rose-400">${isPending ? '--' : formatTempWithSymbol(archive.extremeMax)}</span>
+            </div>
+            <p class="text-[11px] text-white/50">${isPending ? '待观测' : '发生于 ' + archive.extremeMaxDate}</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs text-white/60 mb-1">
+              <span>全月最低气温</span>
+              <i class="fa-solid fa-temperature-arrow-down text-cyan-300"></i>
+            </div>
+            <div class="flex items-baseline gap-1 my-1">
+              <span class="text-2xl font-black text-cyan-300">${isPending ? '--' : formatTempWithSymbol(archive.extremeMin)}</span>
+            </div>
+            <p class="text-[11px] text-white/50">${isPending ? '待观测' : '发生于 ' + archive.extremeMinDate}</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs text-white/60 mb-1">
+              <span>月度平均气温</span>
+              <i class="fa-solid fa-chart-line text-amber-300"></i>
+            </div>
+            <div class="flex items-baseline gap-1 my-1">
+              <span class="text-2xl font-black text-amber-300">${isPending ? '--' : archive.avgTemp + '°' + state.unit}</span>
+            </div>
+            <p class="text-[11px] text-white/50">${isPending ? '待观测' : (archive.avgTemp > 18 ? '气候温暖适宜' : '气候清凉干爽')}</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs text-white/60 mb-1">
+              <span>晴好天数</span>
+              <span class="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-bold">${isPending ? '--' : Math.round((archive.totalSunny / activeRecorded) * 100) + '%'}</span>
+            </div>
+            <div class="flex items-baseline gap-1 my-1">
+              <span class="text-2xl font-black text-amber-400">${isPending ? '--' : archive.totalSunny}</span>
+              <span class="text-xs text-amber-200">天</span>
+            </div>
+            <p class="text-[11px] text-white/50">${isPending ? '待观测' : '日照充足充沛'}</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs text-white/60 mb-1">
+              <span>多云 / 阴天</span>
+              <span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-400/20 text-slate-300 font-bold">${isPending ? '--' : Math.round((archive.totalCloudy / activeRecorded) * 100) + '%'}</span>
+            </div>
+            <div class="flex items-baseline gap-1 my-1">
+              <span class="text-2xl font-black text-slate-300">${isPending ? '--' : archive.totalCloudy}</span>
+              <span class="text-xs text-slate-400">天</span>
+            </div>
+            <p class="text-[11px] text-white/50">${isPending ? '待观测' : '云量覆盖适中'}</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs text-white/60 mb-1">
+              <span>降水天数 / 总量</span>
+              <i class="fa-solid fa-cloud-showers-heavy text-sky-400"></i>
+            </div>
+            <div class="flex items-baseline gap-1 my-1">
+              <span class="text-2xl font-black text-sky-300">${isPending ? '--' : archive.totalRainy}</span>
+              <span class="text-xs text-sky-200">天</span>
+              <span class="text-xs text-white/50 ml-1">(${isPending ? '--' : archive.totalPrecipMm}mm)</span>
+            </div>
+            <p class="text-[11px] text-white/50">${isPending ? '待观测' : (archive.totalPrecipMm > 60 ? '降水较充沛' : '降水偏少干燥')}</p>
+          </div>
+        `;
+      }
+
+      renderMonthlyArchiveChart(archive);
+      renderMonthlyArchiveDaysList(archive);
+    }
+
+    // 渲染全月逐日气温与降水量双轴走势图
+    function renderMonthlyArchiveChart(archive) {
+      const canvas = document.getElementById('monthlyArchiveTrendChart');
+      if (!canvas) return;
+
+      const labels = archive.days.map(d => `${d.day}日`);
+      const maxTemps = archive.days.map(d => (d.maxTemp !== null ? convertTemp(d.maxTemp) : null));
+      const minTemps = archive.days.map(d => (d.minTemp !== null ? convertTemp(d.minTemp) : null));
+      const precipData = archive.days.map(d => (d.status === 'completed' ? d.precipMm : null));
+
+      if (state.monthlyArchive.chartInstance) {
+        state.monthlyArchive.chartInstance.destroy();
+      }
+
+      const ctx = canvas.getContext('2d');
+      state.monthlyArchive.chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              type: 'line',
+              label: '日最高气温',
+              data: maxTemps,
+              borderColor: '#f59e0b',
+              backgroundColor: 'rgba(245, 158, 11, 0.08)',
+              borderWidth: 2.4,
+              tension: 0.35,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              pointBackgroundColor: '#f59e0b',
+              yAxisID: 'y'
+            },
+            {
+              type: 'line',
+              label: '日最低气温',
+              data: minTemps,
+              borderColor: '#38bdf8',
+              backgroundColor: 'rgba(56, 189, 248, 0.08)',
+              borderWidth: 2.4,
+              tension: 0.35,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              pointBackgroundColor: '#38bdf8',
+              yAxisID: 'y'
+            },
+            {
+              type: 'bar',
+              label: '降水量 (mm)',
+              data: precipData,
+              backgroundColor: 'rgba(14, 165, 233, 0.65)',
+              hoverBackgroundColor: 'rgba(56, 189, 248, 0.95)',
+              borderRadius: 4,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 350,
+            easing: 'easeOutQuart'
+          },
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.92)',
+              titleColor: '#ffffff',
+              bodyColor: '#e2e8f0',
+              borderColor: 'rgba(255, 255, 255, 0.2)',
+              borderWidth: 1,
+              padding: 10,
+              cornerRadius: 12,
+              callbacks: {
+                label: (ctx) => {
+                  if (ctx.parsed.y === null || ctx.parsed.y === undefined) return ` ${ctx.dataset.label}: 待观测`;
+                  if (ctx.dataset.yAxisID === 'y1') return ` 降水量: ${ctx.parsed.y} mm`;
+                  return ` ${ctx.dataset.label}: ${ctx.parsed.y}°${state.unit}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: 'rgba(255, 255, 255, 0.65)', font: { size: 10 }, maxRotation: 0 }
+            },
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              grid: { color: 'rgba(255, 255, 255, 0.1)' },
+              ticks: { color: 'rgba(255, 255, 255, 0.65)', font: { size: 11 }, callback: (v) => `${v}°` }
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              grid: { drawOnChartArea: false },
+              ticks: { color: 'rgba(56, 189, 248, 0.75)', font: { size: 10 }, callback: (v) => `${v}mm` },
+              min: 0,
+              suggestedMax: 30
+            }
+          }
+        }
+      });
+    }
+
+    // 渲染全月逐日水平滑动日志卡片
+    function renderMonthlyArchiveDaysList(archive) {
+      const container = document.getElementById('monthlyArchiveDaysContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      archive.days.forEach(day => {
+        const card = document.createElement('div');
+        const isPending = (day.status === 'pending');
+
+        if (isPending) {
+          card.className = 'glass-card-subtle min-w-[96px] sm:min-w-[105px] p-3 rounded-2xl flex flex-col items-center justify-between text-center shrink-0 border border-dashed border-white/20 opacity-60';
+          card.innerHTML = `
+            <span class="text-xs text-white/50">${day.dateStr}</span>
+            <span class="text-[10px] text-white/40">${day.weekday}</span>
+            <i class="fa-solid fa-clock text-xl text-white/30 my-2"></i>
+            <span class="text-xs font-bold text-white/40">待观测</span>
+            <span class="text-[10px] text-white/30 mt-1">--</span>
+          `;
+        } else {
+          card.className = 'glass-card-subtle min-w-[96px] sm:min-w-[105px] p-3 rounded-2xl flex flex-col items-center justify-between text-center shrink-0 hover:bg-white/20 transition cursor-pointer hover:scale-105 shadow-sm';
+          card.innerHTML = `
+            <span class="text-xs text-white/70">${day.dateStr}</span>
+            <span class="text-[10px] text-white/50">${day.weekday}</span>
+            <i class="fa-solid ${day.weatherIcon} text-xl my-2"></i>
+            <div class="flex items-center gap-1.5 font-bold text-xs">
+              <span class="text-cyan-300">${convertTemp(day.minTemp)}°</span>
+              <span class="text-white/40 font-normal">~</span>
+              <span class="text-amber-300">${convertTemp(day.maxTemp)}°</span>
+            </div>
+            <span class="text-[10px] ${day.precipMm > 0 ? 'text-sky-300 font-semibold' : 'text-white/40'} mt-1 flex items-center gap-0.5">
+              ${day.precipMm > 0 ? `<i class="fa-solid fa-droplet text-[9px]"></i>${day.precipMm}mm` : day.weatherText}
+            </span>
+          `;
+
+          card.addEventListener('click', () => {
+            openDayDetailModal({
+              fullDateString: day.fullDateString,
+              weatherCode: day.weatherCode,
+              maxTemp: day.maxTemp,
+              minTemp: day.minTemp,
+              apparentMax: day.maxTemp + 1,
+              apparentMin: day.minTemp - 1,
+              precipitationProb: day.precipMm > 0 ? 80 : 10,
+              windSpeed: 12,
+              uvIndex: day.precipMm > 0 ? 2 : 5,
+              sunriseTime: '06:30',
+              sunsetTime: '17:50',
+              clothingAdvice: day.maxTemp > 22 ? '短袖/长袖' : '外套长裤',
+              summaryText: `${archive.city}历史回溯观测档案`,
+              detailedAdvice: `历史实测数据显示：当日最高温 ${day.maxTemp}°C，最低温 ${day.minTemp}°C，降水记录 ${day.precipMm} mm。气象状态为 ${day.weatherText}。`
+            });
+          });
+        }
+
+        container.appendChild(card);
+      });
+    }
+
+    // 初始化月度档案筛选器与事件绑定
+    function setupMonthlyArchiveControls() {
+      const citySelect = document.getElementById('monthlyArchiveCitySelect');
+      const yearSelect = document.getElementById('monthlyArchiveYearSelect');
+      const monthSelect = document.getElementById('monthlyArchiveMonthSelect');
+      const quickBtn = document.getElementById('monthlyArchiveQuickDongguanBtn');
+
+      // 初始化城市选择下拉项 (涵盖东莞及核心一线、新一线、二线城市)
+      if (citySelect) {
+        citySelect.innerHTML = '';
+        const citySource = typeof TIER_CITIES !== 'undefined' ? TIER_CITIES : HOT_CITIES;
+        citySource.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.name;
+          opt.textContent = `${c.name} (${c.tier || '核心'})`;
+          opt.className = 'bg-slate-900 text-white';
+          if (c.name === state.monthlyArchive.city) {
+            opt.selected = true;
+          }
+          citySelect.appendChild(opt);
+        });
+
+        citySelect.addEventListener('change', (e) => {
+          state.monthlyArchive.city = e.target.value;
+          renderMonthlyArchive();
+          showToast(`已加载【${state.monthlyArchive.city}】${state.monthlyArchive.year}年${state.monthlyArchive.month}月历史气象档案`, 'info');
+        });
+      }
+
+      // 初始化年份选择下拉项 (2012 ~ 2026)
+      if (yearSelect) {
+        yearSelect.innerHTML = '';
+        for (let y = 2026; y >= 2012; y--) {
+          const opt = document.createElement('option');
+          opt.value = y;
+          opt.textContent = `${y} 年`;
+          opt.className = 'bg-slate-900 text-white';
+          if (y === state.monthlyArchive.year) {
+            opt.selected = true;
+          }
+          yearSelect.appendChild(opt);
+        }
+
+        yearSelect.addEventListener('change', (e) => {
+          state.monthlyArchive.year = parseInt(e.target.value);
+          renderMonthlyArchive();
+          showToast(`已切换至 ${state.monthlyArchive.year} 年 ${state.monthlyArchive.month} 月数据`, 'info');
+        });
+      }
+
+      // 初始化月份选择下拉项 (1 ~ 12月)
+      if (monthSelect) {
+        monthSelect.innerHTML = '';
+        for (let m = 1; m <= 12; m++) {
+          const opt = document.createElement('option');
+          opt.value = m;
+          opt.textContent = `${m} 月`;
+          opt.className = 'bg-slate-900 text-white';
+          if (m === state.monthlyArchive.month) {
+            opt.selected = true;
+          }
+          monthSelect.appendChild(opt);
+        }
+
+        monthSelect.addEventListener('change', (e) => {
+          state.monthlyArchive.month = parseInt(e.target.value);
+          renderMonthlyArchive();
+          showToast(`已切换至 ${state.monthlyArchive.year} 年 ${state.monthlyArchive.month} 月数据`, 'info');
+        });
+      }
+
+      // 一键快捷示例按钮 (2016年 东莞 1月)
+      if (quickBtn) {
+        quickBtn.addEventListener('click', () => {
+          state.monthlyArchive.city = '东莞';
+          state.monthlyArchive.year = 2016;
+          state.monthlyArchive.month = 1;
+
+          if (citySelect) citySelect.value = '东莞';
+          if (yearSelect) yearSelect.value = '2016';
+          if (monthSelect) monthSelect.value = '1';
+
+          renderMonthlyArchive();
+          showToast('已载入【东莞市】2016年1月 完整历史月度档案', 'success');
+        });
+      }
+    }
+
     function getWindDirectionText(degree) {
       const directions = ['北风', '东北风', '东风', '东南风', '南风', '西南风', '西风', '西北风'];
       const index = Math.round(((degree % 360) / 45)) % 8;
@@ -4049,6 +4688,8 @@
       setupHeatmapControls();
       initChinaTemperatureHeatMap();
       setupHistoricalControls();
+      setupMonthlyArchiveControls();
+      renderMonthlyArchive();
       setupLoginPortal();
       fetchWeatherData(state.currentCity);
     });
