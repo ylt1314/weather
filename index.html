@@ -713,11 +713,11 @@
           </div>
         </div>
 
-        <!-- 密码输入框 -->
+        <!-- 密码输入框 (隐藏明文密码提示) -->
         <div>
           <label class="block text-xs font-semibold text-white/80 mb-1.5 flex items-center justify-between">
             <span><i class="fa-solid fa-key text-cyan-300 mr-1.5"></i>登录密码</span>
-            <span class="text-[11px] text-white/50">888888 / abc@10211</span>
+            <span class="text-[11px] text-white/40"><i class="fa-solid fa-lock text-[10px] mr-1"></i>密码已脱敏保护</span>
           </label>
           <div class="relative">
             <input 
@@ -733,38 +733,15 @@
               class="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition text-xs"
               title="显示/隐藏密码"
             >
-              <i id="togglePasswordIcon" class="fa-solid fa-eye"></i>
+              <i id="togglePasswordIcon" class="fa-solid fa-eye-slash"></i>
             </button>
           </div>
         </div>
 
-        <!-- 错误提示文本 -->
+        <!-- 错误提示文本 (隐藏明文密码泄露) -->
         <div id="loginErrorTip" class="text-xs text-rose-300 bg-rose-500/15 border border-rose-400/30 rounded-xl px-3 py-2 hidden flex items-center gap-2">
           <i class="fa-solid fa-circle-exclamation shrink-0"></i>
           <span id="loginErrorMsg">密码错误，请核对后重试</span>
-        </div>
-
-        <!-- 快捷凭据选择胶囊条 -->
-        <div class="pt-1">
-          <span class="text-[11px] text-white/50 block mb-1.5">快捷凭据测试填充:</span>
-          <div class="grid grid-cols-2 gap-2">
-            <button 
-              type="button" 
-              id="quickFillBtn1"
-              class="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/15 text-[11px] text-white/80 text-left transition flex items-center justify-between"
-            >
-              <span><strong>14599</strong> · 888888</span>
-              <i class="fa-solid fa-bolt text-amber-300 text-[10px]"></i>
-            </button>
-            <button 
-              type="button" 
-              id="quickFillBtn2"
-              class="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/15 text-[11px] text-white/80 text-left transition flex items-center justify-between"
-            >
-              <span><strong>10211</strong> · abc@10211</span>
-              <i class="fa-solid fa-bolt text-cyan-300 text-[10px]"></i>
-            </button>
-          </div>
         </div>
 
         <!-- 登录提交按钮 -->
@@ -4008,7 +3985,7 @@
         showToast(`欢迎进入系统，工号【${selectedAccount}】身份认证成功！`, 'success');
       } else {
         if (errorTip && errorMsg) {
-          errorMsg.textContent = '密码错误，请核对（账号 14599 密码为 888888；账号 10211 密码为 abc@10211）';
+          errorMsg.textContent = '密码错误，请核对后重试';
           errorTip.classList.remove('hidden');
         }
         showToast('账号或密码不匹配，请核对重试', 'warn');
@@ -4045,9 +4022,9 @@
         });
       }
 
-      const accountSelect = document.getElementById('loginAccountSelect');
       const passwordInput = document.getElementById('loginPasswordInput');
 
+      // 密码显示 / 隐藏明文切换 (默认遮罩暗文)
       const togglePasswordBtn = document.getElementById('togglePasswordBtn');
       const togglePasswordIcon = document.getElementById('togglePasswordIcon');
       if (togglePasswordBtn && passwordInput) {
@@ -4055,30 +4032,8 @@
           const isPass = passwordInput.type === 'password';
           passwordInput.type = isPass ? 'text' : 'password';
           if (togglePasswordIcon) {
-            togglePasswordIcon.className = isPass ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+            togglePasswordIcon.className = isPass ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash';
           }
-        });
-      }
-
-      const quickFillBtn1 = document.getElementById('quickFillBtn1');
-      if (quickFillBtn1) {
-        quickFillBtn1.addEventListener('click', () => {
-          if (accountSelect) accountSelect.value = '14599';
-          if (passwordInput) passwordInput.value = '888888';
-          const errorTip = document.getElementById('loginErrorTip');
-          if (errorTip) errorTip.classList.add('hidden');
-          showToast('已填入账号 14599 / 密码 888888', 'info');
-        });
-      }
-
-      const quickFillBtn2 = document.getElementById('quickFillBtn2');
-      if (quickFillBtn2) {
-        quickFillBtn2.addEventListener('click', () => {
-          if (accountSelect) accountSelect.value = '10211';
-          if (passwordInput) passwordInput.value = 'abc@10211';
-          const errorTip = document.getElementById('loginErrorTip');
-          if (errorTip) errorTip.classList.add('hidden');
-          showToast('已填入账号 10211 / 密码 abc@10211', 'info');
         });
       }
 
