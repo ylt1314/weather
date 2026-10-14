@@ -653,6 +653,35 @@
           <!-- 动态注入热力矩阵表格 -->
         </div>
       </div>
+
+      <!-- 独立单行 4：年月度降水量的最近3年对比分布矩阵图 (独占一行) -->
+      <div class="p-5 sm:p-6 rounded-2xl bg-white/5 border border-white/10 space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-white/10 pb-3.5">
+          <div>
+            <h3 class="text-sm sm:text-base font-bold flex items-center gap-2">
+              <i class="fa-solid fa-cloud-showers-water text-cyan-300"></i>
+              <span><span id="precipMatrixCityText" class="text-amber-300 font-extrabold mr-1">北京市</span>最近 3 年（<span id="precipMatrixYearsText">2024 - 2026</span>）月度降水量对比分布矩阵图</span>
+            </h3>
+            <p id="precipMatrixNotice" class="text-xs text-white/60 mt-1">
+              各月份降水量（mm）逐年分布热力矩阵 · 悬停单元格查看各年差异与 3 年均值
+            </p>
+          </div>
+
+          <!-- 降水量区间图例说明 -->
+          <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-white/70">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-sky-600 border border-sky-300"></span>≥ 120mm 汛期多雨</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-sky-500"></span>60 - 120mm 充沛湿润</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-cyan-500"></span>20 - 60mm 适中平稳</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-blue-400/30"></span>&lt; 20mm 偏少干燥</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded border border-dashed border-white/40 bg-white/5"></span>未走完</span>
+          </div>
+        </div>
+
+        <!-- 降水矩阵动态渲染容器 (支持横向滑动) -->
+        <div id="monthlyPrecipMatrixContainer" class="overflow-x-auto no-scrollbar py-1">
+          <!-- 动态注入降水量对比分布矩阵表格 -->
+        </div>
+      </div>
     </section>
 
     <!-- 独立单行 4：历史月度精细化气象回溯档案板块（城市与年月自由筛选） -->
@@ -2405,6 +2434,9 @@
       const matrixCityEl = document.getElementById('matrixCityText');
       if (matrixCityEl) matrixCityEl.textContent = cityName;
 
+      const precipCityEl = document.getElementById('precipMatrixCityText');
+      if (precipCityEl) precipCityEl.textContent = cityName;
+
       const now = new Date();
       const currentDateString = document.getElementById('currentDateString');
       if (currentDateString) {
@@ -2900,6 +2932,8 @@
       if (statusCityEl) statusCityEl.textContent = cityName;
       const matrixCityEl = document.getElementById('matrixCityText');
       if (matrixCityEl) matrixCityEl.textContent = cityName;
+      const precipCityEl = document.getElementById('precipMatrixCityText');
+      if (precipCityEl) precipCityEl.textContent = cityName;
 
       const baselineMean = state.historicalData.fifteenYearMean || state.historicalData.tenYearMean;
       const anomaly = Math.round((yearData.yearAvgTemp - baselineMean) * 10) / 10;
@@ -3577,6 +3611,7 @@
           const currentText = cell.dataset.current;
           const ratio = cell.dataset.ratio ? `(占全月 ${cell.dataset.ratio})` : '';
           const avg = cell.dataset.avg || '0';
+          const unit = cell.dataset.unit || ' 天';
           let past = [];
 
           try {
@@ -3590,7 +3625,7 @@
             pastListHtml = past.map(p => `
               <div class="flex items-center justify-between py-1 border-b border-white/5 last:border-0">
                 <span class="text-white/70">${p.year} 年历史同期:</span>
-                <span class="font-bold text-white">${p.val} 天 <span class="text-[10px] text-white/50">(${Math.round((p.val / p.totalDays) * 100)}%)</span></span>
+                <span class="font-bold text-white">${p.val} ${unit} ${p.totalDays ? `<span class="text-[10px] text-white/50">(${Math.round((p.val / p.totalDays) * 100)}%)</span>` : ''}</span>
               </div>
             `).join('');
           } else {
@@ -3618,14 +3653,14 @@
               <div class="border-t border-white/10 pt-2">
                 <div class="text-[11px] font-semibold text-sky-200 mb-1 flex items-center gap-1.5">
                   <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
-                  <span>过去 3 年历史同期数据对照:</span>
+                  <span>最近 3 年历史同期数据对照:</span>
                 </div>
                 <div class="space-y-0.5">
                   ${pastListHtml}
                 </div>
                 <div class="mt-2 pt-1.5 border-t border-white/10 flex items-center justify-between text-[10px] text-white/60 font-medium">
                   <span>3 年历史同期均值:</span>
-                  <span class="font-bold text-white">${avg} 天</span>
+                  <span class="font-bold text-white">${avg} ${unit}</span>
                 </div>
               </div>
             </div>
@@ -3644,6 +3679,213 @@
       });
     }
 
+    // 渲染年月度降水量的最近 3 年对比分布矩阵图
+    function renderMonthlyPrecipComparisonMatrix() {
+      const container = document.getElementById('monthlyPrecipMatrixContainer');
+      if (!container || !state.historicalData || !state.historicalData.years) return;
+
+      const cityName = state.currentCity.name;
+      const titleCityEl = document.getElementById('precipMatrixCityText');
+      if (titleCityEl) titleCityEl.textContent = cityName;
+
+      // 提取以当前基准年份为核心的最近 3 年（如 2024, 2025, 2026）
+      const selYear = state.histSelectedYear;
+      let targetYears = [selYear - 2, selYear - 1, selYear];
+      if (targetYears[0] < 2012) {
+        targetYears = [2012, 2013, 2014];
+      }
+      targetYears = targetYears.filter(y => y <= 2026 && y >= 2012);
+
+      const yearsTextEl = document.getElementById('precipMatrixYearsText');
+      if (yearsTextEl) {
+        yearsTextEl.textContent = `${targetYears[0]} - ${targetYears[targetYears.length - 1]}`;
+      }
+
+      const noticeEl = document.getElementById('precipMatrixNotice');
+      if (noticeEl) {
+        if (targetYears.includes(2026)) {
+          noticeEl.innerHTML = '<span class="text-amber-300 font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>2026年 11-12月尚未到来，保持未走完/待观测状态（悬停单元格查看各年差异与 3 年均值）</span>';
+        } else {
+          noticeEl.innerHTML = `<span class="text-emerald-300 font-medium"><i class="fa-solid fa-circle-check mr-1.5"></i>【${cityName}】最近 3 年（${targetYears.join('、')}年）各月度降水量观测归档与丰枯对比</span>`;
+        }
+      }
+
+      // 降水量热力梯度色阶生成器
+      const getPrecipCellStyle = (mm) => {
+        if (mm === null || mm === undefined) return 'background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.3);';
+        if (mm >= 120) {
+          return 'background: rgba(2, 132, 199, 0.88); color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.6); font-weight: 800; border-color: rgba(56, 189, 248, 0.5);';
+        }
+        if (mm >= 60) {
+          return 'background: rgba(14, 165, 233, 0.72); color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); font-weight: 700;';
+        }
+        if (mm >= 20) {
+          return 'background: rgba(6, 182, 212, 0.52); color: #ffffff; font-weight: 600;';
+        }
+        return 'background: rgba(56, 189, 248, 0.22); color: rgba(255,255,255,0.9); font-weight: 500;';
+      };
+
+      const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+
+      // 计算各月份 3 年历史均值
+      const monthlyAverages = [];
+      for (let m = 0; m < 12; m++) {
+        let validSum = 0;
+        let validCount = 0;
+        targetYears.forEach(y => {
+          const mData = state.historicalData.years[y]?.months[m];
+          if (mData && mData.status !== 'pending' && mData.precipMm !== null) {
+            validSum += mData.precipMm;
+            validCount++;
+          }
+        });
+        monthlyAverages.push(validCount > 0 ? Math.round(validSum / validCount) : null);
+      }
+
+      let html = `
+        <table class="w-full text-left border-collapse min-w-[760px]">
+          <thead>
+            <tr class="border-b border-white/15 text-xs text-white/60">
+              <th class="py-2.5 px-3 font-semibold w-36 text-left">年度 / 降水对比</th>
+      `;
+
+      months.forEach((mName, mIdx) => {
+        let tag = '';
+        if (targetYears.includes(2026)) {
+          if (mIdx >= 10) tag = '<span class="block text-[10px] text-white/40 font-normal">待观测</span>';
+          else if (mIdx === 9) tag = '<span class="block text-[10px] text-amber-300 font-semibold">进行中</span>';
+        }
+        html += `<th class="py-2.5 px-2 text-center font-bold text-xs">${mName}${tag}</th>`;
+      });
+
+      html += `
+              <th class="py-2.5 px-3 text-center font-bold text-cyan-300 text-xs w-28">年降水总量</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/10 text-xs">
+      `;
+
+      // 渲染最近 3 年的数据行
+      targetYears.forEach((y, yIdx) => {
+        const yData = state.historicalData.years[y];
+        const isLatest = (yIdx === targetYears.length - 1);
+        const yearBadgeClass = isLatest ? 'bg-amber-500/20 text-amber-300 border-amber-400/30' : 'bg-cyan-500/20 text-cyan-300 border-cyan-400/30';
+
+        html += `
+          <tr class="hover:bg-white/5 transition duration-150">
+            <td class="py-3 px-3 font-semibold text-white/90">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-cloud-rain text-xs text-sky-400 shrink-0"></i>
+                <span class="px-2 py-0.5 rounded text-[11px] font-bold border ${yearBadgeClass}">${y} 年</span>
+              </div>
+            </td>
+        `;
+
+        let yearAccumulatedMm = 0;
+
+        for (let m = 0; m < 12; m++) {
+          const mData = yData?.months[m];
+          const isPending = (mData && mData.status === 'pending');
+          const isOngoing = (mData && mData.status === 'ongoing');
+          const precipMm = mData ? mData.precipMm : 0;
+          if (!isPending) yearAccumulatedMm += precipMm;
+
+          // 准备 3 年该月份降水量比对数据供悬停展示
+          const pastYearsData = targetYears.map(cmpYear => {
+            const cmpM = state.historicalData.years[cmpYear]?.months[m];
+            return {
+              year: cmpYear,
+              val: (cmpM && cmpM.status !== 'pending') ? cmpM.precipMm : '--',
+              isPending: cmpM?.status === 'pending'
+            };
+          });
+
+          const avgVal = monthlyAverages[m] !== null ? `${monthlyAverages[m]}` : '--';
+
+          if (isPending) {
+            html += `
+              <td class="p-1.5 text-center">
+                <div class="matrix-cell-interactive w-full py-2 rounded-lg border border-dashed border-white/20 bg-white/[0.02] text-white/30 text-[11px] font-medium cursor-pointer hover:border-cyan-400/50 hover:bg-white/5 transition"
+                  data-city="${cityName}"
+                  data-year="${y}"
+                  data-month="${months[m]}"
+                  data-type="precip"
+                  data-title="降水量观测"
+                  data-badge="待观测"
+                  data-badgeclass="bg-white/10 text-white/60 border border-white/20"
+                  data-current="未走完 (待观测)"
+                  data-unit="mm"
+                  data-past='${JSON.stringify(pastYearsData)}'
+                  data-avg="${avgVal}">
+                  --
+                </div>
+              </td>
+            `;
+          } else {
+            const style = getPrecipCellStyle(precipMm);
+            const ongoingText = isOngoing ? `<span class="block text-[9px] text-amber-200">/12天</span>` : '';
+            const tierBadge = precipMm >= 120 ? '汛期多雨' : (precipMm >= 60 ? '充沛湿润' : (precipMm >= 20 ? '适中平稳' : '偏少干燥'));
+            const tierClass = precipMm >= 120 ? 'bg-sky-600/30 text-sky-200 border border-sky-400/30' : (precipMm >= 60 ? 'bg-sky-500/30 text-sky-200 border border-sky-400/30' : 'bg-cyan-500/20 text-cyan-200 border border-cyan-400/30');
+
+            html += `
+              <td class="p-1.5 text-center">
+                <div class="matrix-cell-interactive w-full py-2 rounded-lg border border-white/10 shadow-sm transition hover:scale-105 cursor-pointer flex flex-col items-center justify-center hover:ring-2 hover:ring-cyan-300"
+                  style="${style}"
+                  data-city="${cityName}"
+                  data-year="${y}"
+                  data-month="${months[m]}"
+                  data-type="precip"
+                  data-title="降水量 (mm)"
+                  data-badge="${tierBadge}"
+                  data-badgeclass="${tierClass}"
+                  data-current="${precipMm} mm${isOngoing ? ' (实测12天)' : ''}"
+                  data-unit="mm"
+                  data-past='${JSON.stringify(pastYearsData)}'
+                  data-avg="${avgVal}">
+                  <span class="text-xs font-black tracking-tight">${precipMm}</span>
+                  <span class="text-[9px] text-white/70">mm</span>
+                  ${ongoingText}
+                </div>
+              </td>
+            `;
+          }
+        }
+
+        html += `
+            <td class="py-3 px-3 text-center font-extrabold text-cyan-300 text-sm">
+              ${yearAccumulatedMm} <span class="text-[11px] text-white/60 font-normal">mm</span>
+            </td>
+          </tr>
+        `;
+      });
+
+      // 底部行：3 年同期月均降水量
+      html += `
+          <tr class="bg-white/5 border-t border-white/15 text-[11px] text-white/70 font-semibold">
+            <td class="py-2.5 px-3 font-semibold text-white/80">3 年同期月均值</td>
+      `;
+
+      let total3YearAvg = 0;
+      monthlyAverages.forEach(avg => {
+        if (avg !== null) {
+          total3YearAvg += avg;
+          html += `<td class="py-2.5 px-1.5 text-center text-cyan-300 font-bold">${avg}mm</td>`;
+        } else {
+          html += `<td class="py-2.5 px-1.5 text-center text-white/40">--</td>`;
+        }
+      });
+
+      html += `
+            <td class="py-2.5 px-3 text-center font-extrabold text-amber-300">${total3YearAvg} mm</td>
+          </tr>
+        </tbody>
+      </table>
+      `;
+
+      container.innerHTML = html;
+      bindMatrixHoverEvents(container);
+    }
+
     // 聚合刷新历史气象视图
     function renderHistoricalWeatherViews() {
       if (!state.historicalData) return;
@@ -3651,6 +3893,7 @@
       renderHistoricalComparisonChart();
       renderWeatherStatusMatrix();
       renderTemperatureTierHeatmap();
+      renderMonthlyPrecipComparisonMatrix();
     }
 
     // 绑定历史气象控制栏事件
