@@ -790,6 +790,12 @@
               <button id="archiveDimRainDaysBtn" class="archive-dim-btn px-2.5 py-1.5 rounded-lg text-white hover:text-white/80 transition flex items-center gap-1">
                 <i class="fa-solid fa-umbrella text-emerald-200"></i> 下雨天数
               </button>
+              <button id="archiveDimAbove30Btn" class="archive-dim-btn px-2.5 py-1.5 rounded-lg text-white hover:text-white/80 transition flex items-center gap-1">
+                <i class="fa-solid fa-sun text-orange-200"></i> ≥30°C天数
+              </button>
+              <button id="archiveDimBelow10Btn" class="archive-dim-btn px-2.5 py-1.5 rounded-lg text-white hover:text-white/80 transition flex items-center gap-1">
+                <i class="fa-solid fa-snowflake text-indigo-200"></i> &lt;10°C天数
+              </button>
             </div>
           </div>
         </div>
@@ -4133,11 +4139,27 @@
       const rainD = Math.max(1, Math.min(26, Math.round(30 * rainFactor + Math.sin(year * 3 + month + lon) * 2)));
       const precip = Math.round(rainD * (7 + Math.abs(Math.sin(month * 1.7 + lat * 0.2)) * 12));
 
+      // 测算 ≥30°C 高温天数与 <10°C 低温天数
+      let dAbove30 = 0;
+      let dBelow10 = 0;
+      const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+      const daysCount = [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1] || 30;
+
+      for (let d = 1; d <= daysCount; d++) {
+        const dayWave = Math.sin((d / daysCount) * Math.PI * 2.6 + month * 0.7) * (maxT - minT) * 0.45;
+        const dayNoise = Math.sin(d * 4.2 + year) * 1.4;
+        const dayT = Math.round(monthAvg + 3.2 + dayWave + dayNoise);
+        if (dayT >= 30) dAbove30++;
+        if (dayT < 10) dBelow10++;
+      }
+
       return {
         maxTemp: maxT,
         minTemp: minT,
         rainyDays: rainD,
-        precip: precip
+        precip: precip,
+        daysAbove30: dAbove30,
+        daysBelow10: dBelow10
       };
     }
 
@@ -4173,7 +4195,7 @@
           v3 = convertTemp(v3);
         } else if (dim === 'precip') {
           unit = 'mm';
-        } else if (dim === 'rainyDays') {
+        } else if (dim === 'rainyDays' || dim === 'daysAbove30' || dim === 'daysBelow10') {
           unit = '天';
         }
 
@@ -4230,7 +4252,9 @@
         maxTemp: '最高气温',
         minTemp: '最低气温',
         precip: '降水量',
-        rainyDays: '下雨天数'
+        rainyDays: '下雨天数',
+        daysAbove30: '≥30°C高温天数',
+        daysBelow10: '<10°C低温天数'
       };
 
       const dimConfig = {
@@ -4261,10 +4285,24 @@
           colors: ['#ecfdf5', '#a7f3d0', '#34d399', '#059669', '#064e3b'],
           min: 2,
           max: 22
+        },
+        daysAbove30: {
+          title: `全国 ${month} 月 ≥30°C 高温天数分布与近3年比对 (天)`,
+          gradient: 'from-amber-100 via-orange-400 via-rose-500 to-red-900',
+          colors: ['#fef3c7', '#fde047', '#fb923c', '#f43f5e', '#be123c', '#881337'],
+          min: 0,
+          max: 28
+        },
+        daysBelow10: {
+          title: `全国 ${month} 月 <10°C 低温天数分布与近3年比对 (天)`,
+          gradient: 'from-cyan-100 via-sky-400 via-blue-600 to-slate-900',
+          colors: ['#e0f2fe', '#7dd3fc', '#38bdf8', '#2563eb', '#1d4ed8', '#0f172a'],
+          min: 0,
+          max: 28
         }
       };
 
-      const curCfg = dimConfig[dim];
+      const curCfg = dimConfig[dim] || dimConfig.maxTemp;
       const legendText = document.getElementById('archiveMapLegendText');
       if (legendText) {
         legendText.innerHTML = `当前图例: <strong>${state.monthlyArchive.mapLevel === 'province' ? `【${state.monthlyArchive.currentProvinceData?.name}】` : ''}${curCfg.title}</strong>`;
@@ -4295,7 +4333,7 @@
             v3 = convertTemp(v3);
           } else if (dim === 'precip') {
             unit = 'mm';
-          } else if (dim === 'rainyDays') {
+          } else if (dim === 'rainyDays' || dim === 'daysAbove30' || dim === 'daysBelow10') {
             unit = '天';
           }
           return {
@@ -4397,6 +4435,18 @@
                     <span>${d.metricsY1.rainyDays}天</span>
                     <span>${d.metricsY2.rainyDays}天</span>
                     <span>${d.metricsY3.rainyDays}天</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color: rgba(255,255,255,0.6);">≥30°C天数:</span>
+                    <span>${d.metricsY1.daysAbove30 ?? 0}天</span>
+                    <span>${d.metricsY2.daysAbove30 ?? 0}天</span>
+                    <span>${d.metricsY3.daysAbove30 ?? 0}天</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color: rgba(255,255,255,0.6);">&lt;10°C天数:</span>
+                    <span>${d.metricsY1.daysBelow10 ?? 0}天</span>
+                    <span>${d.metricsY2.daysBelow10 ?? 0}天</span>
+                    <span>${d.metricsY3.daysBelow10 ?? 0}天</span>
                   </div>
                 </div>
 
