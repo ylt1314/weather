@@ -4636,7 +4636,9 @@
         { id: 'archiveDimMaxTempBtn', dim: 'maxTemp', activeClass: 'bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-md font-bold' },
         { id: 'archiveDimMinTempBtn', dim: 'minTemp', activeClass: 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md font-bold' },
         { id: 'archiveDimPrecipBtn', dim: 'precip', activeClass: 'bg-gradient-to-r from-cyan-600 to-sky-600 text-white shadow-md font-bold' },
-        { id: 'archiveDimRainDaysBtn', dim: 'rainyDays', activeClass: 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md font-bold' }
+        { id: 'archiveDimRainDaysBtn', dim: 'rainyDays', activeClass: 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md font-bold' },
+        { id: 'archiveDimAbove30Btn', dim: 'daysAbove30', activeClass: 'bg-gradient-to-r from-orange-500 to-rose-600 text-white shadow-md font-bold' },
+        { id: 'archiveDimBelow10Btn', dim: 'daysBelow10', activeClass: 'bg-gradient-to-r from-blue-700 to-indigo-600 text-white shadow-md font-bold' }
       ];
 
       dimButtons.forEach(b => {
@@ -4657,7 +4659,14 @@
           });
 
           renderArchiveMonthlyHeatmap();
-          const dimMap = { maxTemp: '最高气温', minTemp: '最低气温', precip: '降水量', rainyDays: '下雨天数' };
+          const dimMap = { 
+            maxTemp: '最高气温', 
+            minTemp: '最低气温', 
+            precip: '降水量', 
+            rainyDays: '下雨天数',
+            daysAbove30: '≥30°C高温天数',
+            daysBelow10: '<10°C低温天数'
+          };
           showToast(`已切换至【${dimMap[b.dim]}】历史空间热力分布`, 'info');
         });
       });
