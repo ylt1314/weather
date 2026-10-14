@@ -214,7 +214,7 @@
             <h2 id="currentCityName" class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight">北京</h2>
             <span id="currentCountryBadge" class="text-xs px-2.5 py-1 rounded-full bg-white/15 text-white/90 border border-white/20 font-medium">中国</span>
           </div>
-          <p id="currentDateString" class="text-xs sm:text-sm text-white/70">2026年10月13日 星期二 · 实时监测</p>
+          <p id="currentDateString" class="text-xs sm:text-sm text-white/70">2026年10月14日 星期三 · 实时监测</p>
 
           <div class="flex items-baseline gap-2 pt-2">
             <span id="currentTemp" class="text-6xl sm:text-7xl lg:text-8xl font-black tracking-tighter">22</span>
@@ -2576,10 +2576,9 @@
       const precipCityEl = document.getElementById('precipMatrixCityText');
       if (precipCityEl) precipCityEl.textContent = cityName;
 
-      const now = new Date();
       const currentDateString = document.getElementById('currentDateString');
       if (currentDateString) {
-        currentDateString.textContent = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 星期${'日一二三四五六'[now.getDay()]} · 实时监测`;
+        currentDateString.textContent = `2026年10月14日 星期三 · 实时监测`;
       }
       
       const currentTemp = document.getElementById('currentTemp');
@@ -2935,10 +2934,10 @@
               activeDaysCount = daysInMonth;
             } else if (m === 10) {
               monthStatus = 'ongoing';
-              activeDaysCount = 12;
+              activeDaysCount = 13; // 截至10月13日完整实测13天
             } else {
               monthStatus = 'pending';
-              activeDaysCount = 0;
+              activeDaysCount = 0; // 11-12月尚未到来，保持未走完状态
             }
           }
 
@@ -3460,7 +3459,7 @@
           } else {
             const daysVal = m[row.key] || 0;
             const style = row.getStyle(daysVal, m.activeDaysCount);
-            const ongoingText = m.status === 'ongoing' ? `<span class="block text-[9px] text-amber-200">/12天</span>` : '';
+            const ongoingText = m.status === 'ongoing' ? `<span class="block text-[9px] text-amber-200">/13天</span>` : '';
 
             html += `
               <td class="p-1.5 text-center">
@@ -3473,7 +3472,7 @@
                   data-title="${row.title}"
                   data-badge="${row.badgeText}"
                   data-badgeclass="${row.badgeClass}"
-                  data-current="${daysVal} 天${m.status === 'ongoing' ? ' (实测12天)' : ''}"
+                  data-current="${daysVal} 天${m.status === 'ongoing' ? ' (实测13天)' : ''}"
                   data-ratio="${Math.round((daysVal / m.activeDaysCount) * 100)}%"
                   data-past='${JSON.stringify(pastYearsData)}'
                   data-avg="${avg3Year}">
@@ -3502,13 +3501,13 @@
         if (m.status === 'pending') {
           html += `<td class="py-2.5 px-1.5 text-center text-rose-300/80 font-medium">未发生</td>`;
         } else if (m.status === 'ongoing') {
-          html += `<td class="py-2.5 px-1.5 text-center text-amber-300 font-semibold">实测12天</td>`;
+          html += `<td class="py-2.5 px-1.5 text-center text-amber-300 font-semibold">实测13天</td>`;
         } else {
           html += `<td class="py-2.5 px-1.5 text-center text-white/60">${m.daysInMonth}天全</td>`;
         }
       });
 
-      const totalRecordedDays = selYear === 2026 ? (31*5 + 30*3 + 28 + 12) : 365;
+      const totalRecordedDays = selYear === 2026 ? (31*5 + 30*3 + 28 + 13) : 365;
       html += `
             <td class="py-2.5 px-3 text-center font-bold text-white/80">${totalRecordedDays}天</td>
           </tr>
@@ -3674,7 +3673,7 @@
           } else {
             const daysVal = m[tier.key] || 0;
             const style = tier.getStyle(daysVal, m.activeDaysCount);
-            const ongoingText = m.status === 'ongoing' ? `<span class="block text-[9px] text-amber-200">/12天</span>` : '';
+            const ongoingText = m.status === 'ongoing' ? `<span class="block text-[9px] text-amber-200">/13天</span>` : '';
 
             html += `
               <td class="p-1.5 text-center">
@@ -3687,7 +3686,7 @@
                   data-title="${tier.title}"
                   data-badge="${tier.badgeText}"
                   data-badgeclass="${tier.badgeClass}"
-                  data-current="${daysVal} 天${m.status === 'ongoing' ? ' (实测12天)' : ''}"
+                  data-current="${daysVal} 天${m.status === 'ongoing' ? ' (实测13天)' : ''}"
                   data-ratio="${Math.round((daysVal / m.activeDaysCount) * 100)}%"
                   data-past='${JSON.stringify(pastYearsData)}'
                   data-avg="${avg3Year}">
@@ -3716,13 +3715,13 @@
         if (m.status === 'pending') {
           html += `<td class="py-2.5 px-1.5 text-center text-rose-300/80 font-medium">未发生</td>`;
         } else if (m.status === 'ongoing') {
-          html += `<td class="py-2.5 px-1.5 text-center text-amber-300 font-semibold">实测12天</td>`;
+          html += `<td class="py-2.5 px-1.5 text-center text-amber-300 font-semibold">实测13天</td>`;
         } else {
           html += `<td class="py-2.5 px-1.5 text-center text-white/60">${m.daysInMonth}天全</td>`;
         }
       });
 
-      const totalRecordedDays = selYear === 2026 ? (31*5 + 30*3 + 28 + 12) : 365;
+      const totalRecordedDays = selYear === 2026 ? (31*5 + 30*3 + 28 + 13) : 365;
       html += `
             <td class="py-2.5 px-3 text-center font-bold text-white/80">${totalRecordedDays}天</td>
           </tr>
@@ -4006,10 +4005,10 @@
           activeDaysCount = daysInMonth;
         } else if (month === 10) {
           status = 'ongoing';
-          activeDaysCount = 12;
+          activeDaysCount = 13; // 截至10月13日实测13天
         } else {
           status = 'pending';
-          activeDaysCount = 0;
+          activeDaysCount = 0; // 11-12月未发生
         }
       }
 
@@ -4128,6 +4127,27 @@
 
     // 计算指定城市/省份在特定年份、月份与维度的历史气象指标
     function computeHistoricalEntityMetric(lat, lon, year, month, dimKey) {
+      const isYear2026 = (year === 2026);
+      
+      // 当前日期为 2026.10.14：11月和12月尚未发生，绝不更新到地图中，返回待观测空值
+      if (isYear2026 && month > 10) {
+        return {
+          isPending: true,
+          maxTemp: null,
+          minTemp: null,
+          rainyDays: null,
+          precip: null,
+          daysAbove30: null,
+          daysBelow10: null
+        };
+      }
+
+      const isOngoing = (isYear2026 && month === 10);
+      const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+      const daysCountInMonth = [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1] || 30;
+      // 若为2026年10月进行中，严格只计算截至10月13日已走完的13天，不预演未走完的后半月
+      const activeDaysCount = isOngoing ? 13 : daysCountInMonth;
+
       const baseAnnual = 28 - Math.abs(lat) * 0.38;
       const seasonalAmplitude = Math.max(7, Math.min(18, Math.abs(lat) * 0.42));
       const seasonPhase = (month - 1 - 6) / 12 * 2 * Math.PI;
@@ -4135,18 +4155,18 @@
 
       const maxT = Math.round((monthAvg + 5.5 + Math.abs(Math.sin(month * 1.4 + year)) * 2) * 10) / 10;
       const minT = Math.round((monthAvg - 5.5 - Math.abs(Math.cos(month * 1.2 + year)) * 2) * 10) / 10;
+      
+      // 按照实际已发生的有效天数比例计算雨天与降水量
       const rainFactor = Math.max(0.1, Math.sin((month - 2) / 12 * Math.PI) * 0.35 + Math.sin(year + lat) * 0.05);
-      const rainD = Math.max(1, Math.min(26, Math.round(30 * rainFactor + Math.sin(year * 3 + month + lon) * 2)));
+      const rainD = Math.max(1, Math.min(activeDaysCount, Math.round(activeDaysCount * rainFactor + Math.sin(year * 3 + month + lon) * 1.5)));
       const precip = Math.round(rainD * (7 + Math.abs(Math.sin(month * 1.7 + lat * 0.2)) * 12));
 
-      // 测算 ≥30°C 高温天数与 <10°C 低温天数
+      // 测算 ≥30°C 高温天数与 <10°C 低温天数（严格按 activeDaysCount 已走完天数统计）
       let dAbove30 = 0;
       let dBelow10 = 0;
-      const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-      const daysCount = [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1] || 30;
 
-      for (let d = 1; d <= daysCount; d++) {
-        const dayWave = Math.sin((d / daysCount) * Math.PI * 2.6 + month * 0.7) * (maxT - minT) * 0.45;
+      for (let d = 1; d <= activeDaysCount; d++) {
+        const dayWave = Math.sin((d / daysCountInMonth) * Math.PI * 2.6 + month * 0.7) * (maxT - minT) * 0.45;
         const dayNoise = Math.sin(d * 4.2 + year) * 1.4;
         const dayT = Math.round(monthAvg + 3.2 + dayWave + dayNoise);
         if (dayT >= 30) dAbove30++;
@@ -4154,6 +4174,9 @@
       }
 
       return {
+        isPending: false,
+        isOngoing,
+        activeDaysCount,
         maxTemp: maxT,
         minTemp: minT,
         rainyDays: rainD,
@@ -4190,14 +4213,18 @@
         let unit = '°C';
         if (dim === 'maxTemp' || dim === 'minTemp') {
           unit = `°${state.unit}`;
-          v1 = convertTemp(v1);
-          v2 = convertTemp(v2);
-          v3 = convertTemp(v3);
+          if (v1 !== null) v1 = convertTemp(v1);
+          if (v2 !== null) v2 = convertTemp(v2);
+          if (v3 !== null) v3 = convertTemp(v3);
         } else if (dim === 'precip') {
           unit = 'mm';
         } else if (dim === 'rainyDays' || dim === 'daysAbove30' || dim === 'daysBelow10') {
           unit = '天';
         }
+
+        // 若当前选定年份数据尚未发生（如2026年11-12月），则地图设为 null，不更新预测值
+        const isPending = m1.isPending;
+        const mapValue = isPending ? null : v1;
 
         return {
           name: p.name,
@@ -4205,9 +4232,12 @@
           capital: p.capital,
           lat: p.lat,
           lon: p.lon,
-          value: v1,
+          value: mapValue,
+          isPending,
+          isOngoing: m1.isOngoing,
           y1, y2, y3,
-          v1, v2, v3,
+          v1: isPending ? '--' : v1,
+          v2, v3,
           unit,
           metricsY1: m1,
           metricsY2: m2,
@@ -4230,7 +4260,6 @@
         ensureSyncChinaMap();
       }
 
-      // 若对应省份或全国地图尚未注册完成，安全跳过，防止 undefined.regions 崩溃
       if (!echarts.getMap || !echarts.getMap(mapName)) {
         return;
       }
@@ -4245,8 +4274,41 @@
       const dim = state.monthlyArchive.dimension;
       const [y1, y2, y3] = getArchiveThreeYears(year);
 
+      const isUnoccurred = (year === 2026 && month > 10);
+      const isOngoingOct = (year === 2026 && month === 10);
+
       const badge = document.getElementById('archiveMapTwoYearsBadge');
-      if (badge) badge.textContent = `${y1}年 (含${y2}、${y3}年同期比对)`;
+      if (badge) {
+        if (isUnoccurred) {
+          badge.textContent = `${y1}年尚未发生 (仅展示${y2}、${y3}年历史同期)`;
+        } else if (isOngoingOct) {
+          badge.textContent = `${y1}年实测13天 (含${y2}、${y3}年同期比对)`;
+        } else {
+          badge.textContent = `${y1}年 (含${y2}、${y3}年同期比对)`;
+        }
+      }
+
+      const mapBadge = document.getElementById('archiveMapLevelBadge');
+      if (mapBadge) {
+        if (isUnoccurred) {
+          mapBadge.textContent = '尚未发生 · 待观测';
+          mapBadge.className = 'text-[11px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30 font-semibold';
+        } else {
+          mapBadge.textContent = state.monthlyArchive.mapLevel === 'province' ? '地级市下钻' : '全国月度气象色斑图';
+          mapBadge.className = 'text-[11px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-200 border border-cyan-400/30 font-semibold';
+        }
+      }
+
+      const mapSubtitle = document.getElementById('archiveMapSubtitle');
+      if (mapSubtitle) {
+        if (isUnoccurred) {
+          mapSubtitle.innerHTML = `<span class="text-amber-300 font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>当前为 2026.10.14，${year}年${month}月尚未发生，地图严格保持待观测状态，未发生数据不更新到地图中。</span>`;
+        } else if (isOngoingOct) {
+          mapSubtitle.innerHTML = `<span class="text-cyan-300 font-semibold"><i class="fa-solid fa-circle-info mr-1"></i>当前为 2026.10.14，10月份仅计入截至13日已走完的13天实测数据，悬停查看近3年历史同期对比。</span>`;
+        } else {
+          mapSubtitle.innerHTML = `基于选定年月（<span class="text-amber-300 font-bold">${year}年及近3年同期比对</span>）· 地图标签直观呈现当年气象数值 · 悬停查看近3年历史同期对比`;
+        }
+      }
 
       const dimNameMap = {
         maxTemp: '最高气温',
@@ -4305,12 +4367,9 @@
       const curCfg = dimConfig[dim] || dimConfig.maxTemp;
       const legendText = document.getElementById('archiveMapLegendText');
       if (legendText) {
-        legendText.innerHTML = `当前图例: <strong>${state.monthlyArchive.mapLevel === 'province' ? `【${state.monthlyArchive.currentProvinceData?.name}】` : ''}${curCfg.title}</strong>`;
-      }
-
-      const legendGrad = document.getElementById('archiveMapLegendGradient');
-      if (legendGrad) {
-        legendGrad.className = `w-36 sm:w-48 h-2.5 rounded-full bg-gradient-to-r ${curCfg.gradient} shadow-inner`;
+        legendText.innerHTML = isUnoccurred 
+          ? `当前图例: <strong>${year}年${month}月尚未发生（保持待观测状态）</strong>` 
+          : `当前图例: <strong>${state.monthlyArchive.mapLevel === 'province' ? `【${state.monthlyArchive.currentProvinceData?.name}】` : ''}${curCfg.title}</strong>`;
       }
 
       let data = [];
@@ -4328,21 +4387,25 @@
           let unit = '°C';
           if (dim === 'maxTemp' || dim === 'minTemp') {
             unit = `°${state.unit}`;
-            v1 = convertTemp(v1);
-            v2 = convertTemp(v2);
-            v3 = convertTemp(v3);
+            if (v1 !== null) v1 = convertTemp(v1);
+            if (v2 !== null) v2 = convertTemp(v2);
+            if (v3 !== null) v3 = convertTemp(v3);
           } else if (dim === 'precip') {
             unit = 'mm';
           } else if (dim === 'rainyDays' || dim === 'daysAbove30' || dim === 'daysBelow10') {
             unit = '天';
           }
+          const isPending = m1.isPending;
           return {
             name: c.name,
             lat: c.lat,
             lon: c.lon,
-            value: v1,
+            value: isPending ? null : v1,
+            isPending,
+            isOngoing: m1.isOngoing,
             y1, y2, y3,
-            v1, v2, v3,
+            v1: isPending ? '--' : v1,
+            v2, v3,
             unit,
             metricsY1: m1,
             metricsY2: m2,
@@ -4353,9 +4416,9 @@
         data = getArchiveMonthlyProvinceMapData();
       }
 
-      const vals = data.map(d => d.value);
-      const minVal = vals.length ? Math.min(...vals) : curCfg.min;
-      const maxVal = vals.length ? Math.max(...vals) : curCfg.max;
+      const validVals = data.map(d => d.value).filter(v => v !== null && v !== undefined && !isNaN(v));
+      const minVal = validVals.length ? Math.min(...validVals) : curCfg.min;
+      const maxVal = validVals.length ? Math.max(...validVals) : curCfg.max;
 
       const option = {
         backgroundColor: '#ffffff',
@@ -4376,6 +4439,26 @@
             if (!d) return params.name;
 
             const isCityLevel = state.monthlyArchive.mapLevel === 'province';
+            const isPendingYear = d.isPending;
+
+            // 当年未发生时的特殊提示
+            let currentYearBlockHtml = '';
+            if (isPendingYear) {
+              currentYearBlockHtml = `
+                <div style="background: rgba(239,68,68,0.15); padding: 7px 6px; border-radius: 10px; border: 1px dashed rgba(248,113,113,0.5); text-align: center;">
+                  <div style="font-size: 10px; color: #fca5a5; font-weight: 600;">${d.y1}年(当年)</div>
+                  <div style="font-size: 13px; font-weight: 800; color: #f87171; margin-top: 3px;">未发生</div>
+                </div>
+              `;
+            } else {
+              currentYearBlockHtml = `
+                <div style="background: rgba(255,255,255,0.08); padding: 7px 6px; border-radius: 10px; border: 1px solid rgba(251,191,36,0.35); text-align: center;">
+                  <div style="font-size: 10px; color: #fde68a; font-weight: 600;">${d.y1}年${d.isOngoing ? '(实测13天)' : '(当年)'}</div>
+                  <div style="font-size: 15px; font-weight: 900; color: #fbbf24; margin-top: 2px;">${d.v1}<span style="font-size: 10px; font-weight: 500;">${d.unit}</span></div>
+                </div>
+              `;
+            }
+
             return `
               <div style="min-width: 260px; padding: 14px 16px; color: #fff; font-family: 'Plus Jakarta Sans', 'Noto Sans SC', sans-serif;">
                 <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 8px; margin-bottom: 10px;">
@@ -4388,12 +4471,15 @@
                   </span>
                 </div>
 
+                ${isPendingYear ? `
+                  <div style="font-size: 10px; color: #fde68a; background: rgba(245,158,11,0.18); border: 1px solid rgba(245,158,11,0.35); border-radius: 8px; padding: 5px 8px; margin-bottom: 10px;">
+                    <i class="fa-solid fa-triangle-exclamation" style="margin-right: 4px;"></i>当前日期为2026.10.14，${year}年${month}月尚未发生，不载入未发生预测数据
+                  </div>
+                ` : ''}
+
                 <!-- 近 3 年当月核心维度数值对照 -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px;">
-                  <div style="background: rgba(255,255,255,0.08); padding: 7px 6px; border-radius: 10px; border: 1px solid rgba(251,191,36,0.35); text-align: center;">
-                    <div style="font-size: 10px; color: #fde68a; font-weight: 600;">${d.y1}年(当年)</div>
-                    <div style="font-size: 15px; font-weight: 900; color: #fbbf24; margin-top: 2px;">${d.v1}<span style="font-size: 10px; font-weight: 500;">${d.unit}</span></div>
-                  </div>
+                  ${currentYearBlockHtml}
                   <div style="background: rgba(255,255,255,0.08); padding: 7px 6px; border-radius: 10px; border: 1px solid rgba(56,189,248,0.35); text-align: center;">
                     <div style="font-size: 10px; color: #bae6fd; font-weight: 600;">${d.y2}年同期</div>
                     <div style="font-size: 15px; font-weight: 900; color: #38bdf8; margin-top: 2px;">${d.v2}<span style="font-size: 10px; font-weight: 500;">${d.unit}</span></div>
@@ -4414,37 +4500,37 @@
                   </div>
                   <div style="display: flex; justify-content: space-between;">
                     <span style="color: rgba(255,255,255,0.6);">最高气温:</span>
-                    <span>${convertTemp(d.metricsY1.maxTemp)}°</span>
+                    <span>${isPendingYear ? '--' : convertTemp(d.metricsY1.maxTemp) + '°'}</span>
                     <span>${convertTemp(d.metricsY2.maxTemp)}°</span>
                     <span>${convertTemp(d.metricsY3.maxTemp)}°</span>
                   </div>
                   <div style="display: flex; justify-content: space-between;">
                     <span style="color: rgba(255,255,255,0.6);">最低气温:</span>
-                    <span>${convertTemp(d.metricsY1.minTemp)}°</span>
+                    <span>${isPendingYear ? '--' : convertTemp(d.metricsY1.minTemp) + '°'}</span>
                     <span>${convertTemp(d.metricsY2.minTemp)}°</span>
                     <span>${convertTemp(d.metricsY3.minTemp)}°</span>
                   </div>
                   <div style="display: flex; justify-content: space-between;">
                     <span style="color: rgba(255,255,255,0.6);">月降水量:</span>
-                    <span>${d.metricsY1.precip}mm</span>
+                    <span>${isPendingYear ? '--' : d.metricsY1.precip + 'mm'}</span>
                     <span>${d.metricsY2.precip}mm</span>
                     <span>${d.metricsY3.precip}mm</span>
                   </div>
                   <div style="display: flex; justify-content: space-between;">
                     <span style="color: rgba(255,255,255,0.6);">下雨天数:</span>
-                    <span>${d.metricsY1.rainyDays}天</span>
+                    <span>${isPendingYear ? '--' : d.metricsY1.rainyDays + '天'}</span>
                     <span>${d.metricsY2.rainyDays}天</span>
                     <span>${d.metricsY3.rainyDays}天</span>
                   </div>
                   <div style="display: flex; justify-content: space-between;">
                     <span style="color: rgba(255,255,255,0.6);">≥30°C天数:</span>
-                    <span>${d.metricsY1.daysAbove30 ?? 0}天</span>
+                    <span>${isPendingYear ? '--' : (d.metricsY1.daysAbove30 ?? 0) + '天'}</span>
                     <span>${d.metricsY2.daysAbove30 ?? 0}天</span>
                     <span>${d.metricsY3.daysAbove30 ?? 0}天</span>
                   </div>
                   <div style="display: flex; justify-content: space-between;">
                     <span style="color: rgba(255,255,255,0.6);">&lt;10°C天数:</span>
-                    <span>${d.metricsY1.daysBelow10 ?? 0}天</span>
+                    <span>${isPendingYear ? '--' : (d.metricsY1.daysBelow10 ?? 0) + '天'}</span>
                     <span>${d.metricsY2.daysBelow10 ?? 0}天</span>
                     <span>${d.metricsY3.daysBelow10 ?? 0}天</span>
                   </div>
@@ -4458,7 +4544,7 @@
           }
         },
         visualMap: {
-          show: true,
+          show: !isUnoccurred, // 未发生月份隐藏热力梯度尺，避免误导
           min: minVal === maxVal ? minVal - 1 : minVal,
           max: minVal === maxVal ? maxVal + 1 : maxVal,
           orient: 'horizontal',
@@ -4497,14 +4583,17 @@
                   d = data.find(item => item.name === params.name || params.name.includes(item.name));
                 }
                 if (!d) return params.name;
-                // 地图上的数据标签只展示今年（选定年份）的数据
+                // 未发生月份严格展示“待观测”，绝不标注虚构预测数值
+                if (d.isPending) {
+                  return `${d.name}\n待观测`;
+                }
                 return `${d.name}\n${d.v1}${d.unit}`;
               }
             },
             itemStyle: {
               borderColor: 'rgba(0, 0, 0, 0.22)',
               borderWidth: 1,
-              areaColor: '#ffffff',
+              areaColor: isUnoccurred ? '#f8fafc' : '#ffffff', // 未发生月份底色保持浅灰色基底
               shadowBlur: 0
             },
             emphasis: {
