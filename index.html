@@ -465,9 +465,8 @@
               <i class="fa-solid fa-clock-rotate-left"></i>
             </div>
             <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">
-              <span id="histCityTitleBadge" class="text-amber-300 mr-1 font-extrabold">【北京市】</span>过去 15 年气候大数据回溯与跨年动态对比
+              <span id="histCityTitleBadge" class="text-amber-300 mr-1 font-extrabold">【北京市】</span>过去 15 年气候回溯与跨年动态对比
             </h2>
-            <span class="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30 font-semibold">2012 - 2026</span>
           </div>
           <p class="text-xs sm:text-sm text-white/70 mt-1">
             动态分析过去十五年温度波动、晴雨状态结构占比与跨年并轨对比 · 支持历年气候时光轴自动演变回放
@@ -757,6 +756,76 @@
         <!-- 动态注入指标卡片 -->
       </div>
 
+      <!-- 历史月度气象空间热力分布地图板块 (支持下钻地级市 + 4大维度切换 + 最近2年数据标签) -->
+      <div class="p-5 sm:p-6 rounded-2xl bg-white/5 border border-white/10 space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-white/10 pb-3.5">
+          <div>
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-300 flex items-center justify-center text-sm shadow-inner">
+                <i class="fa-solid fa-map-location-dot"></i>
+              </div>
+              <h3 id="archiveMapSectionTitle" class="text-base font-bold text-white tracking-tight">历史月度空间气象热力分布地图</h3>
+              <span id="archiveMapLevelBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-200 border border-cyan-400/30 font-semibold">全国月度气象色斑图</span>
+            </div>
+            <p id="archiveMapSubtitle" class="text-xs text-white/60 mt-1">
+              基于选定年月（<span id="archiveMapTwoYearsBadge" class="text-amber-300 font-bold">选定年份及近3年同期比对</span>）· 地图标签直观呈现当年气象数值 · 悬停查看近3年历史同期对比
+            </p>
+          </div>
+
+          <!-- 4 维度切换按钮与返回全国地图按钮 -->
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="archiveMapBackBtn" class="hidden px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm active:scale-95 border border-white/25">
+              <i class="fa-solid fa-arrow-left"></i> 返回全国
+            </button>
+            <div class="glass-pill p-1 rounded-xl flex items-center text-xs font-semibold shadow-inner">
+              <button id="archiveDimMaxTempBtn" class="archive-dim-btn px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-md font-bold transition flex items-center gap-1">
+                <i class="fa-solid fa-temperature-arrow-up text-amber-200"></i> 最高气温
+              </button>
+              <button id="archiveDimMinTempBtn" class="archive-dim-btn px-2.5 py-1.5 rounded-lg text-white hover:text-white/80 transition flex items-center gap-1">
+                <i class="fa-solid fa-temperature-arrow-down text-cyan-200"></i> 最低气温
+              </button>
+              <button id="archiveDimPrecipBtn" class="archive-dim-btn px-2.5 py-1.5 rounded-lg text-white hover:text-white/80 transition flex items-center gap-1">
+                <i class="fa-solid fa-cloud-rain text-sky-200"></i> 降水量
+              </button>
+              <button id="archiveDimRainDaysBtn" class="archive-dim-btn px-2.5 py-1.5 rounded-lg text-white hover:text-white/80 transition flex items-center gap-1">
+                <i class="fa-solid fa-umbrella text-emerald-200"></i> 下雨天数
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 地图色阶指示图例 -->
+        <div class="glass-card-subtle rounded-xl px-3.5 py-2 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div id="archiveMapLegendText" class="text-white/80 font-medium">
+            当前图例: <strong>全国日最高气温分布与近3年比对 (°C)</strong>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-white/60 text-[10px]">低</span>
+            <div id="archiveMapLegendGradient" class="w-36 sm:w-48 h-2.5 rounded-full bg-gradient-to-r from-blue-600 via-cyan-400 via-amber-300 to-rose-600 shadow-inner"></div>
+            <span class="text-white/60 text-[10px]">高</span>
+          </div>
+        </div>
+
+        <!-- 历史月度地图画布主视窗 (纯白底色) -->
+        <div id="archiveMapWrapper" class="relative w-full h-[480px] sm:h-[540px] rounded-2xl overflow-hidden bg-white border border-slate-200/80 shadow-xl select-none flex items-center justify-center">
+          <div id="archiveMapBreadcrumb" class="absolute top-3.5 left-3.5 z-20 flex items-center gap-2 bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 text-xs shadow-lg text-white">
+            <button id="archiveCrumbChinaBtn" class="text-amber-300 font-bold hover:underline flex items-center gap-1 cursor-pointer">
+              <i class="fa-solid fa-map"></i> 全国
+            </button>
+            <span id="archiveCrumbDivider" class="text-white/40 hidden">/</span>
+            <span id="archiveCrumbProvinceText" class="text-cyan-300 font-bold hidden"></span>
+            <span id="archiveDrillTipBadge" class="ml-1 text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">支持下钻地级市</span>
+          </div>
+
+          <div id="archiveEchartsContainer" class="w-full h-full"></div>
+
+          <div id="archiveMapLoadingMask" class="absolute inset-0 flex flex-col items-center justify-center bg-white/85 backdrop-blur-sm z-20 transition-opacity duration-300 pointer-events-none opacity-0">
+            <i class="fa-solid fa-circle-notch fa-spin text-2xl text-cyan-600 mb-2"></i>
+            <span id="archiveMapLoadingText" class="text-xs text-slate-700 font-semibold">正在计算历史空间气象分布...</span>
+          </div>
+        </div>
+      </div>
+
       <!-- 全月中下旬走势图：双折线气温 + 每日降水量柱状图 (Chart.js 双轴图) -->
       <div class="p-5 sm:p-6 rounded-2xl bg-white/5 border border-white/10 space-y-3">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1031,6 +1100,11 @@
         cityCoords: { latitude: 23.0205, longitude: 113.7518 },
         year: 2016,
         month: 1,
+        dimension: 'maxTemp', // 'maxTemp', 'minTemp', 'precip', 'rainyDays'
+        mapLevel: 'country', // 'country' or 'province'
+        currentProvinceData: null,
+        cityDataList: [],
+        mapChartInstance: null,
         chartInstance: null
       }
     };
@@ -1199,6 +1273,66 @@
     }
 
     let chinaMapChart = null;
+
+    // 内置同步轻量级中国省级多边形生成器 (彻底根除因异步网络 fetch 尚未完成导致的 undefined.regions 错误)
+    function buildFallbackChinaGeoJson() {
+      const features = CHINA_PROVINCES.map(p => {
+        const lon = p.lon;
+        const lat = p.lat;
+        let dx = 1.2, dy = 0.9;
+        if (p.name === '新疆') { dx = 5.2; dy = 3.6; }
+        else if (p.name === '西藏') { dx = 4.8; dy = 2.6; }
+        else if (p.name === '内蒙古') { dx = 5.2; dy = 2.2; }
+        else if (p.name === '青海') { dx = 3.5; dy = 2.0; }
+        else if (p.name === '四川') { dx = 3.0; dy = 2.3; }
+        else if (p.name === '黑龙江') { dx = 3.0; dy = 2.4; }
+        else if (p.name === '甘肃') { dx = 3.2; dy = 1.5; }
+        else if (p.name === '云南') { dx = 2.4; dy = 2.0; }
+        else if (p.name === '北京' || p.name === '天津' || p.name === '上海' || p.name === '香港' || p.name === '澳门') { dx = 0.45; dy = 0.4; }
+
+        const pts = [
+          [lon - dx * 0.9, lat - dy * 0.7],
+          [lon - dx * 0.3, lat - dy],
+          [lon + dx * 0.6, lat - dy * 0.8],
+          [lon + dx, lat - dy * 0.1],
+          [lon + dx * 0.8, lat + dy * 0.7],
+          [lon + dx * 0.2, lat + dy],
+          [lon - dx * 0.7, lat + dy * 0.8],
+          [lon - dx * 0.9, lat - dy * 0.7]
+        ];
+
+        return {
+          type: 'Feature',
+          properties: {
+            name: p.name,
+            center: [lon, lat]
+          },
+          geometry: {
+            type: 'Polygon',
+            coordinates: [pts]
+          }
+        };
+      });
+
+      return {
+        type: 'FeatureCollection',
+        features
+      };
+    }
+
+    // 确保 china_fast 地图在任何 setOption 执行前已 100% 同步注册完成
+    function ensureSyncChinaMap() {
+      if (!window.echarts) return false;
+      if (echarts.getMap && echarts.getMap('china_fast')) return true;
+      if (window._cachedChinaGeoJson) {
+        echarts.registerMap('china_fast', window._cachedChinaGeoJson);
+        return true;
+      }
+      const fallbackGeo = buildFallbackChinaGeoJson();
+      window._cachedChinaGeoJson = fallbackGeo;
+      echarts.registerMap('china_fast', fallbackGeo);
+      return true;
+    }
 
     // 省份名称模糊与别名匹配辅助函数
     function findProvinceByName(rawName) {
@@ -1827,7 +1961,11 @@
     // 初始化构建高颜值、极速响应且标注南海诸岛的中国气温热力地图
     function buildEchartsInstance() {
       const container = document.getElementById('chinaEchartsContainer');
-      if (!container) return;
+      if (!container || !window.echarts) return;
+
+      // 防御性校验：若尚未注册，立即进行同步保底注册，杜绝 undefined.regions 报错
+      ensureSyncChinaMap();
+      if (!echarts.getMap || !echarts.getMap('china_fast')) return;
 
       if (!chinaMapChart) {
         chinaMapChart = echarts.init(container, null, { renderer: 'canvas' });
@@ -2027,7 +2165,7 @@
       }
     }
 
-    // 高速多级地图加载引擎
+    // 高速多级地图加载引擎 (同步保底秒开 + 后台异步平滑升级)
     async function initChinaTemperatureHeatMap() {
       const container = document.getElementById('chinaEchartsContainer');
       if (!container || !window.echarts) return;
@@ -2037,14 +2175,11 @@
       const crumbChinaBtn = document.getElementById('crumbChinaBtn');
       if (crumbChinaBtn) crumbChinaBtn.addEventListener('click', backToChinaMap);
 
-      if (echarts.getMap && echarts.getMap('china_fast')) {
-        buildEchartsInstance();
-        return;
-      }
+      // 第一步：立即同步注册保底地图并渲染，避免白屏和竞态报错
+      ensureSyncChinaMap();
+      buildEchartsInstance();
 
-      if (window._cachedChinaGeoJson) {
-        echarts.registerMap('china_fast', window._cachedChinaGeoJson);
-        buildEchartsInstance();
+      if (window._hasHighResChinaMap) {
         return;
       }
 
@@ -2061,8 +2196,8 @@
       for (const url of FAST_GEOJSON_SOURCES) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 1800);
-          const res = await fetch(url, { signal: controller.signal });
+          const timeoutId = setTimeout(() => controller.abort(), 2200);
+          const res = await fetch(url, { signal: controller.signal, referrerPolicy: 'no-referrer' });
           clearTimeout(timeoutId);
           if (res.ok) {
             rawGeoJson = await res.json();
@@ -2078,17 +2213,15 @@
       if (rawGeoJson) {
         const cleanGeoJson = sanitizeChinaGeoJson(rawGeoJson);
         window._cachedChinaGeoJson = cleanGeoJson;
+        window._hasHighResChinaMap = true;
         echarts.registerMap('china_fast', cleanGeoJson);
-      } else {
-        if (echarts.getMap && echarts.getMap('china')) {
-          const defaultGeo = echarts.getMap('china').geoJson;
-          const cleanGeoJson = sanitizeChinaGeoJson(defaultGeo);
-          echarts.registerMap('china_fast', cleanGeoJson);
+        buildEchartsInstance();
+        if (state.monthlyArchive && state.monthlyArchive.mapLevel === 'country') {
+          renderArchiveMonthlyHeatmap();
         }
       }
 
       if (loadingMask) loadingMask.classList.add('opacity-0');
-      buildEchartsInstance();
     }
 
     // 热力图最高温 / 最低温模式切换按钮事件绑定
@@ -3625,7 +3758,7 @@
             pastListHtml = past.map(p => `
               <div class="flex items-center justify-between py-1 border-b border-white/5 last:border-0">
                 <span class="text-white/70">${p.year} 年历史同期:</span>
-                <span class="font-bold text-white">${p.val} ${unit} ${p.totalDays ? `<span class="text-[10px] text-white/50">(${Math.round((p.val / p.totalDays) * 100)}%)</span>` : ''}</span>
+                <span class="font-bold text-white">${p.val}${unit} <span class="text-[10px] text-white/50">${p.totalDays ? `(${Math.round((p.val / p.totalDays) * 100)}%)` : ''}</span></span>
               </div>
             `).join('');
           } else {
@@ -3653,14 +3786,14 @@
               <div class="border-t border-white/10 pt-2">
                 <div class="text-[11px] font-semibold text-sky-200 mb-1 flex items-center gap-1.5">
                   <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
-                  <span>最近 3 年历史同期数据对照:</span>
+                  <span>过去 3 年历史同期数据对照:</span>
                 </div>
                 <div class="space-y-0.5">
                   ${pastListHtml}
                 </div>
                 <div class="mt-2 pt-1.5 border-t border-white/10 flex items-center justify-between text-[10px] text-white/60 font-medium">
                   <span>3 年历史同期均值:</span>
-                  <span class="font-bold text-white">${avg} ${unit}</span>
+                  <span class="font-bold text-white">${avg}${unit}</span>
                 </div>
               </div>
             </div>
@@ -3679,204 +3812,169 @@
       });
     }
 
-    // 渲染年月度降水量的最近 3 年对比分布矩阵图
+    // 渲染年月度降水量的最近3年对比分布矩阵图
     function renderMonthlyPrecipComparisonMatrix() {
       const container = document.getElementById('monthlyPrecipMatrixContainer');
-      if (!container || !state.historicalData || !state.historicalData.years) return;
+      if (!container || !state.historicalData) return;
 
+      const selYear = state.histSelectedYear;
       const cityName = state.currentCity.name;
+
       const titleCityEl = document.getElementById('precipMatrixCityText');
       if (titleCityEl) titleCityEl.textContent = cityName;
 
-      // 提取以当前基准年份为核心的最近 3 年（如 2024, 2025, 2026）
-      const selYear = state.histSelectedYear;
-      let targetYears = [selYear - 2, selYear - 1, selYear];
-      if (targetYears[0] < 2012) {
-        targetYears = [2012, 2013, 2014];
-      }
-      targetYears = targetYears.filter(y => y <= 2026 && y >= 2012);
-
-      const yearsTextEl = document.getElementById('precipMatrixYearsText');
-      if (yearsTextEl) {
-        yearsTextEl.textContent = `${targetYears[0]} - ${targetYears[targetYears.length - 1]}`;
+      const compareYears = [selYear, selYear - 1, selYear - 2].filter(y => y >= 2012);
+      if (compareYears.length < 3) {
+        for (let y = 2026; y >= 2012 && compareYears.length < 3; y--) {
+          if (!compareYears.includes(y)) compareYears.push(y);
+        }
+        compareYears.sort((a, b) => b - a);
       }
 
-      const noticeEl = document.getElementById('precipMatrixNotice');
-      if (noticeEl) {
-        if (targetYears.includes(2026)) {
-          noticeEl.innerHTML = '<span class="text-amber-300 font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>2026年 11-12月尚未到来，保持未走完/待观测状态（悬停单元格查看各年差异与 3 年均值）</span>';
-        } else {
-          noticeEl.innerHTML = `<span class="text-emerald-300 font-medium"><i class="fa-solid fa-circle-check mr-1.5"></i>【${cityName}】最近 3 年（${targetYears.join('、')}年）各月度降水量观测归档与丰枯对比</span>`;
-        }
+      const yearsLabel = document.getElementById('precipMatrixYearsText');
+      if (yearsLabel) {
+        yearsLabel.textContent = `${Math.min(...compareYears)} - ${Math.max(...compareYears)}`;
       }
 
-      // 降水量热力梯度色阶生成器
-      const getPrecipCellStyle = (mm) => {
-        if (mm === null || mm === undefined) return 'background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.3);';
-        if (mm >= 120) {
-          return 'background: rgba(2, 132, 199, 0.88); color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.6); font-weight: 800; border-color: rgba(56, 189, 248, 0.5);';
+      function getPrecipStyle(precip, status) {
+        if (status === 'pending') {
+          return 'background: rgba(255,255,255,0.02); color: rgba(255,255,255,0.3); border: 1px dashed rgba(255,255,255,0.2);';
         }
-        if (mm >= 60) {
-          return 'background: rgba(14, 165, 233, 0.72); color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); font-weight: 700;';
+        if (precip >= 120) {
+          return 'background: rgba(2, 132, 199, 0.95); color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.4);';
         }
-        if (mm >= 20) {
-          return 'background: rgba(6, 182, 212, 0.52); color: #ffffff; font-weight: 600;';
+        if (precip >= 60) {
+          return 'background: rgba(14, 165, 233, 0.75); color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); font-weight: 700;';
         }
-        return 'background: rgba(56, 189, 248, 0.22); color: rgba(255,255,255,0.9); font-weight: 500;';
-      };
-
-      const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
-
-      // 计算各月份 3 年历史均值
-      const monthlyAverages = [];
-      for (let m = 0; m < 12; m++) {
-        let validSum = 0;
-        let validCount = 0;
-        targetYears.forEach(y => {
-          const mData = state.historicalData.years[y]?.months[m];
-          if (mData && mData.status !== 'pending' && mData.precipMm !== null) {
-            validSum += mData.precipMm;
-            validCount++;
-          }
-        });
-        monthlyAverages.push(validCount > 0 ? Math.round(validSum / validCount) : null);
+        if (precip >= 20) {
+          return 'background: rgba(6, 182, 212, 0.55); color: #ffffff; font-weight: 600;';
+        }
+        return 'background: rgba(96, 165, 250, 0.22); color: rgba(255,255,255,0.85);';
       }
 
+      const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
       let html = `
         <table class="w-full text-left border-collapse min-w-[760px]">
           <thead>
             <tr class="border-b border-white/15 text-xs text-white/60">
-              <th class="py-2.5 px-3 font-semibold w-36 text-left">年度 / 降水对比</th>
+              <th class="py-2.5 px-3 font-semibold w-36 text-left">自然年份</th>
       `;
 
-      months.forEach((mName, mIdx) => {
-        let tag = '';
-        if (targetYears.includes(2026)) {
-          if (mIdx >= 10) tag = '<span class="block text-[10px] text-white/40 font-normal">待观测</span>';
-          else if (mIdx === 9) tag = '<span class="block text-[10px] text-amber-300 font-semibold">进行中</span>';
-        }
-        html += `<th class="py-2.5 px-2 text-center font-bold text-xs">${mName}${tag}</th>`;
+      months.forEach(m => {
+        html += `<th class="py-2.5 px-2 text-center font-bold text-xs">${m}月</th>`;
       });
 
       html += `
-              <th class="py-2.5 px-3 text-center font-bold text-cyan-300 text-xs w-28">年降水总量</th>
+              <th class="py-2.5 px-3 text-center font-bold text-cyan-300 text-xs w-28">年度总降水</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-white/10 text-xs">
       `;
 
-      // 渲染最近 3 年的数据行
-      targetYears.forEach((y, yIdx) => {
-        const yData = state.historicalData.years[y];
-        const isLatest = (yIdx === targetYears.length - 1);
-        const yearBadgeClass = isLatest ? 'bg-amber-500/20 text-amber-300 border-amber-400/30' : 'bg-cyan-500/20 text-cyan-300 border-cyan-400/30';
+      const monthlySums = new Array(12).fill(0);
+      const monthlyCounts = new Array(12).fill(0);
+
+      compareYears.forEach(year => {
+        const yearObj = state.historicalData.years[year];
+        let yearTotalPrecip = 0;
 
         html += `
           <tr class="hover:bg-white/5 transition duration-150">
-            <td class="py-3 px-3 font-semibold text-white/90">
-              <div class="flex items-center gap-2">
-                <i class="fa-solid fa-cloud-rain text-xs text-sky-400 shrink-0"></i>
-                <span class="px-2 py-0.5 rounded text-[11px] font-bold border ${yearBadgeClass}">${y} 年</span>
-              </div>
+            <td class="py-3 px-3 font-extrabold text-white flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full ${year === selYear ? 'bg-amber-400' : 'bg-cyan-400'}"></span>
+              <span>${year} 年</span>
+              ${year === selYear ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-400/30">基准</span>' : ''}
             </td>
         `;
 
-        let yearAccumulatedMm = 0;
+        months.forEach((m, idx) => {
+          const mData = yearObj ? yearObj.months[idx] : null;
+          const status = mData ? mData.status : 'completed';
+          const precip = mData && mData.precipMm !== null && mData.precipMm !== undefined ? mData.precipMm : 0;
+          const style = getPrecipStyle(precip, status);
 
-        for (let m = 0; m < 12; m++) {
-          const mData = yData?.months[m];
-          const isPending = (mData && mData.status === 'pending');
-          const isOngoing = (mData && mData.status === 'ongoing');
-          const precipMm = mData ? mData.precipMm : 0;
-          if (!isPending) yearAccumulatedMm += precipMm;
+          if (status !== 'pending') {
+            yearTotalPrecip += precip;
+            monthlySums[idx] += precip;
+            monthlyCounts[idx]++;
+          }
 
-          // 准备 3 年该月份降水量比对数据供悬停展示
-          const pastYearsData = targetYears.map(cmpYear => {
-            const cmpM = state.historicalData.years[cmpYear]?.months[m];
-            return {
-              year: cmpYear,
-              val: (cmpM && cmpM.status !== 'pending') ? cmpM.precipMm : '--',
-              isPending: cmpM?.status === 'pending'
-            };
-          });
+          const pastYearsData = getPast3YearsMonthData(m, 'precipMm', year);
+          const avg3Year = pastYearsData.length > 0 ? (pastYearsData.reduce((acc, c) => acc + c.val, 0) / pastYearsData.length).toFixed(1) : precip;
 
-          const avgVal = monthlyAverages[m] !== null ? `${monthlyAverages[m]}` : '--';
-
-          if (isPending) {
+          if (status === 'pending') {
             html += `
               <td class="p-1.5 text-center">
-                <div class="matrix-cell-interactive w-full py-2 rounded-lg border border-dashed border-white/20 bg-white/[0.02] text-white/30 text-[11px] font-medium cursor-pointer hover:border-cyan-400/50 hover:bg-white/5 transition"
+                <div class="matrix-cell-interactive w-full py-2 rounded-lg text-[11px] font-medium cursor-pointer transition"
+                  style="${style}"
                   data-city="${cityName}"
-                  data-year="${y}"
-                  data-month="${months[m]}"
+                  data-year="${year}"
+                  data-month="${m}月"
                   data-type="precip"
-                  data-title="降水量观测"
+                  data-title="降水量观测对比"
                   data-badge="待观测"
-                  data-badgeclass="bg-white/10 text-white/60 border border-white/20"
+                  data-badgeclass="bg-rose-500/20 text-rose-300 border border-rose-400/30"
                   data-current="未走完 (待观测)"
-                  data-unit="mm"
                   data-past='${JSON.stringify(pastYearsData)}'
-                  data-avg="${avgVal}">
+                  data-avg="${avg3Year}"
+                  data-unit=" mm">
                   --
                 </div>
               </td>
             `;
           } else {
-            const style = getPrecipCellStyle(precipMm);
-            const ongoingText = isOngoing ? `<span class="block text-[9px] text-amber-200">/12天</span>` : '';
-            const tierBadge = precipMm >= 120 ? '汛期多雨' : (precipMm >= 60 ? '充沛湿润' : (precipMm >= 20 ? '适中平稳' : '偏少干燥'));
-            const tierClass = precipMm >= 120 ? 'bg-sky-600/30 text-sky-200 border border-sky-400/30' : (precipMm >= 60 ? 'bg-sky-500/30 text-sky-200 border border-sky-400/30' : 'bg-cyan-500/20 text-cyan-200 border border-cyan-400/30');
-
             html += `
               <td class="p-1.5 text-center">
-                <div class="matrix-cell-interactive w-full py-2 rounded-lg border border-white/10 shadow-sm transition hover:scale-105 cursor-pointer flex flex-col items-center justify-center hover:ring-2 hover:ring-cyan-300"
+                <div class="matrix-cell-interactive w-full py-2 rounded-lg text-[11px] font-bold cursor-pointer transition hover:scale-105 hover:ring-2 hover:ring-cyan-300 shadow-sm flex flex-col items-center justify-center"
                   style="${style}"
                   data-city="${cityName}"
-                  data-year="${y}"
-                  data-month="${months[m]}"
+                  data-year="${year}"
+                  data-month="${m}月"
                   data-type="precip"
-                  data-title="降水量 (mm)"
-                  data-badge="${tierBadge}"
-                  data-badgeclass="${tierClass}"
-                  data-current="${precipMm} mm${isOngoing ? ' (实测12天)' : ''}"
-                  data-unit="mm"
+                  data-title="月度降水量"
+                  data-badge="${precip >= 120 ? '汛期' : (precip >= 60 ? '充沛' : (precip >= 20 ? '适中' : '干燥'))}"
+                  data-badgeclass="${precip >= 60 ? 'bg-sky-500/20 text-sky-300 border-sky-400/30' : 'bg-cyan-500/20 text-cyan-300 border-cyan-400/30'}"
+                  data-current="${precip} mm"
                   data-past='${JSON.stringify(pastYearsData)}'
-                  data-avg="${avgVal}">
-                  <span class="text-xs font-black tracking-tight">${precipMm}</span>
-                  <span class="text-[9px] text-white/70">mm</span>
-                  ${ongoingText}
+                  data-avg="${avg3Year}"
+                  data-unit=" mm">
+                  <span>${precip}</span>
+                  <span class="text-[9px] opacity-75 font-normal">mm</span>
                 </div>
               </td>
             `;
           }
-        }
+        });
 
         html += `
             <td class="py-3 px-3 text-center font-extrabold text-cyan-300 text-sm">
-              ${yearAccumulatedMm} <span class="text-[11px] text-white/60 font-normal">mm</span>
+              ${yearTotalPrecip} <span class="text-[10px] text-white/50 font-normal">mm</span>
             </td>
           </tr>
         `;
       });
 
-      // 底部行：3 年同期月均降水量
       html += `
-          <tr class="bg-white/5 border-t border-white/15 text-[11px] text-white/70 font-semibold">
-            <td class="py-2.5 px-3 font-semibold text-white/80">3 年同期月均值</td>
+          <tr class="bg-white/5 border-t border-white/15 text-[11px]">
+            <td class="py-2.5 px-3 font-bold text-amber-300 flex items-center gap-1">
+              <i class="fa-solid fa-calculator text-[10px]"></i> 3年同期均值
+            </td>
       `;
 
-      let total3YearAvg = 0;
-      monthlyAverages.forEach(avg => {
-        if (avg !== null) {
-          total3YearAvg += avg;
-          html += `<td class="py-2.5 px-1.5 text-center text-cyan-300 font-bold">${avg}mm</td>`;
-        } else {
-          html += `<td class="py-2.5 px-1.5 text-center text-white/40">--</td>`;
-        }
+      let totalAvgSum = 0;
+      months.forEach((m, idx) => {
+        const count = monthlyCounts[idx] || 1;
+        const avg = Math.round(monthlySums[idx] / count);
+        totalAvgSum += avg;
+        html += `
+          <td class="py-2.5 px-1.5 text-center font-semibold text-white/80">
+            ${avg}<span class="text-[9px] text-white/40">mm</span>
+          </td>
+        `;
       });
 
       html += `
-            <td class="py-2.5 px-3 text-center font-extrabold text-amber-300">${total3YearAvg} mm</td>
+            <td class="py-2.5 px-3 text-center font-bold text-amber-300">${totalAvgSum} mm</td>
           </tr>
         </tbody>
       </table>
@@ -3886,155 +3984,54 @@
       bindMatrixHoverEvents(container);
     }
 
-    // 聚合刷新历史气象视图
-    function renderHistoricalWeatherViews() {
-      if (!state.historicalData) return;
-      renderHistoricalMetrics();
-      renderHistoricalComparisonChart();
-      renderWeatherStatusMatrix();
-      renderTemperatureTierHeatmap();
-      renderMonthlyPrecipComparisonMatrix();
-    }
-
-    // 绑定历史气象控制栏事件
-    function setupHistoricalControls() {
-      const yearSelect = document.getElementById('histYearSelect');
-      const compYearSelect = document.getElementById('histCompareYearSelect');
-
-      if (yearSelect) {
-        yearSelect.addEventListener('change', (e) => {
-          state.histSelectedYear = parseInt(e.target.value);
-          renderHistoricalWeatherViews();
-          showToast(`已切换至基准年份 ${state.histSelectedYear} 年气象数据`, 'info');
-        });
-      }
-
-      if (compYearSelect) {
-        compYearSelect.addEventListener('change', (e) => {
-          state.histCompareYear = parseInt(e.target.value);
-          renderHistoricalComparisonChart();
-          const tc = document.getElementById('histCompareYearTag');
-          if (tc) tc.textContent = state.histCompareYear;
-          showToast(`已切换对比年份至 ${state.histCompareYear} 年`, 'info');
-        });
-      }
-
-      const metricBtns = [
-        { id: 'histMetricAvgBtn', metric: 'avg' },
-        { id: 'histMetricMaxBtn', metric: 'max' },
-        { id: 'histMetricMinBtn', metric: 'min' }
-      ];
-
-      metricBtns.forEach(({ id, metric }) => {
-        const btn = document.getElementById(id);
-        if (btn) {
-          btn.addEventListener('click', () => {
-            state.histMetric = metric;
-            metricBtns.forEach(b => {
-              const el = document.getElementById(b.id);
-              if (el) {
-                if (b.metric === metric) {
-                  el.className = 'hist-metric-btn px-2.5 py-1 rounded-lg bg-white text-slate-900 font-bold shadow transition';
-                } else {
-                  el.className = 'hist-metric-btn px-2.5 py-1 rounded-lg text-white hover:text-white/80 transition';
-                }
-              }
-            });
-            renderHistoricalComparisonChart();
-          });
-        }
-      });
-    }
-
-    // 历史月度精细化气象档案数据生成器 (支持按城市与年月自由检索)
-    function generateMonthlyArchiveData(cityName, year, month) {
-      let lat = 23.0205;
-      let lon = 113.7518;
-      const cleanCityName = (cityName || '东莞').trim();
-
-      // 优先从 monthlyArchive 缓存的经纬度中获取真实地理坐标
-      if (state.monthlyArchive.cityCoords && state.monthlyArchive.city === cleanCityName) {
-        lat = state.monthlyArchive.cityCoords.latitude;
-        lon = state.monthlyArchive.cityCoords.longitude;
-      } else {
-        // 尝试从现有城市分级库匹配
-        const matched = (typeof TIER_CITIES !== 'undefined' ? TIER_CITIES : HOT_CITIES).find(c => 
-          c.name === cleanCityName || cleanCityName.includes(c.name) || c.name.includes(cleanCityName)
-        );
-        if (matched) {
-          lat = matched.latitude;
-          lon = matched.longitude;
-        } else {
-          // 尝试从省级行政中心匹配
-          const matchedProv = (typeof CHINA_PROVINCES !== 'undefined' ? CHINA_PROVINCES : []).find(p => 
-            cleanCityName.includes(p.name) || p.name.includes(cleanCityName) || cleanCityName.includes(p.capital)
-          );
-          if (matchedProv) {
-            lat = matchedProv.lat;
-            lon = matchedProv.lon;
-          } else {
-            // 普适性哈希映射，确保任意冷门城市推演出的地理气候平稳、连续且可复现
-            let hash = 0;
-            for (let i = 0; i < cleanCityName.length; i++) {
-              hash = (hash << 5) - hash + cleanCityName.charCodeAt(i);
-            }
-            lat = 21 + Math.abs(hash % 28);
-            lon = 98 + Math.abs((hash >> 3) % 24);
-          }
-        }
-      }
-
-      const baseCityAnnualTemp = Math.round((28 - Math.abs(lat) * 0.38) * 10) / 10;
-      const seasonalAmplitude = Math.max(7, Math.min(18, Math.abs(lat) * 0.42));
-
-      const daysInMonth = new Date(year, month, 0).getDate();
+    // 基于指定城市、年份与月份生成整月逐日气象历史档案
+    function generateMonthlyArchiveData(city, year, month) {
       const isYear2026 = (year === 2026);
-      
-      let monthStatus = 'completed';
+      const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+      const daysInMonthList = [31, (isLeapYear ? 29 : 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+      const daysInMonth = daysInMonthList[month - 1];
+
+      let status = 'completed';
       let activeDaysCount = daysInMonth;
 
       if (isYear2026) {
         if (month <= 9) {
-          monthStatus = 'completed';
+          status = 'completed';
           activeDaysCount = daysInMonth;
         } else if (month === 10) {
-          monthStatus = 'ongoing';
+          status = 'ongoing';
           activeDaysCount = 12;
         } else {
-          monthStatus = 'pending';
+          status = 'pending';
           activeDaysCount = 0;
         }
       }
 
-      const yearOffset = year - 2012;
-      const warmingTrend = yearOffset * 0.08;
-      const oscillation = Math.sin(year * 1.8 + lon * 0.1) * 0.65;
-      const yearAnnualBase = baseCityAnnualTemp + warmingTrend + oscillation;
+      const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+      const lat = state.monthlyArchive.cityCoords ? state.monthlyArchive.cityCoords.latitude : 23.02;
+      const lon = state.monthlyArchive.cityCoords ? state.monthlyArchive.cityCoords.longitude : 113.75;
 
+      const baseAnnual = 28 - Math.abs(lat) * 0.38;
+      const seasonalAmplitude = Math.max(7, Math.min(18, Math.abs(lat) * 0.42));
       const seasonPhase = (month - 1 - 6) / 12 * 2 * Math.PI;
-      const monthAvg = Math.round((yearAnnualBase + Math.cos(seasonPhase) * seasonalAmplitude + (Math.sin(month * 2 + year) * 0.5)) * 10) / 10;
-      const monthMaxBase = monthAvg + 5.5 + Math.abs(Math.sin(month * 1.4 + year)) * 2;
-      const monthMinBase = monthAvg - 5.5 - Math.abs(Math.cos(month * 1.2 + year)) * 2;
+      const monthBaseTemp = baseAnnual + (year - 2012) * 0.08 + Math.cos(seasonPhase) * seasonalAmplitude + Math.sin(month * 2 + year) * 0.6;
 
       const days = [];
+      let extremeMax = -999;
+      let extremeMin = 999;
+      let extremeMaxDate = '';
+      let extremeMinDate = '';
       let totalSunny = 0;
       let totalCloudy = 0;
       let totalRainy = 0;
       let totalPrecipMm = 0;
-      let extremeMax = -999;
-      let extremeMaxDate = '';
-      let extremeMin = 999;
-      let extremeMinDate = '';
-      let sumDailyMean = 0;
-
-      const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
       for (let d = 1; d <= daysInMonth; d++) {
         const dateObj = new Date(year, month - 1, d);
         const weekdayStr = weekdays[dateObj.getDay()];
-        const isRecorded = (d <= activeDaysCount);
+        const isPastDay = (status === 'completed') || (status === 'ongoing' && d <= activeDaysCount);
 
-        if (!isRecorded) {
+        if (!isPastDay) {
           days.push({
             day: d,
             dateStr: `${month}/${d}`,
@@ -4051,12 +4048,10 @@
           continue;
         }
 
-        const dayWave = Math.sin((d / daysInMonth) * Math.PI * 2.6 + month * 0.7) * (monthMaxBase - monthMinBase) * 0.45;
-        const dayNoise = Math.sin(d * 4.2 + year * 2.1) * 2.2;
-        const dayMax = Math.round(monthAvg + 4.5 + dayWave + dayNoise);
-        const dayMin = Math.round(dayMax - 7 - Math.abs(Math.sin(d * 1.3 + month)) * 3);
-        const dayMean = (dayMax + dayMin) / 2;
-        sumDailyMean += dayMean;
+        const wave = Math.sin((d / daysInMonth) * Math.PI * 2.8 + month * 0.5) * 5.2;
+        const noise = Math.sin(d * 3.7 + year * 1.5) * 2.4;
+        const dayMax = Math.round((monthBaseTemp + 5.5 + wave + noise) * 10) / 10;
+        const dayMin = Math.round((monthBaseTemp - 4.5 + wave * 0.8 + noise * 0.5) * 10) / 10;
 
         if (dayMax > extremeMax) {
           extremeMax = dayMax;
@@ -4067,28 +4062,24 @@
           extremeMinDate = `${month}月${d}日`;
         }
 
-        const rainFactor = Math.sin(d * 3.7 + month * 1.9 + year);
-        const isRain = (rainFactor > 0.42);
-        const precipMm = isRain ? Math.max(1, Math.round((rainFactor - 0.4) * 24 + (d % 5) * 2)) : 0;
-        
-        let weatherCode = 0;
-        if (isRain) {
-          weatherCode = precipMm > 18 ? 63 : 61;
+        const rainSeed = Math.sin(d * 2.1 + month * 3.3 + year);
+        let code = 0;
+        let pMm = 0;
+
+        if (rainSeed > 0.42) {
+          code = rainSeed > 0.78 ? 63 : 61;
+          pMm = Math.round((rainSeed * 18 + 4) * 10) / 10;
           totalRainy++;
-          totalPrecipMm += precipMm;
-        } else if (Math.sin(d * 2.1 + year) > 0.15) {
-          weatherCode = 2; // 多云
-          totalCloudy++;
-        } else if (Math.sin(d * 1.7) > 0.6) {
-          weatherCode = 3; // 阴天
+          totalPrecipMm += pMm;
+        } else if (rainSeed > -0.2) {
+          code = 2;
           totalCloudy++;
         } else {
-          weatherCode = 0; // 晴朗
+          code = 0;
           totalSunny++;
         }
 
-        const wInfo = parseWeatherCode(weatherCode, 1);
-
+        const wInfo = parseWeatherCode(code, 1);
         days.push({
           day: d,
           dateStr: `${month}/${d}`,
@@ -4097,34 +4088,591 @@
           status: 'completed',
           maxTemp: dayMax,
           minTemp: dayMin,
-          precipMm: precipMm,
-          weatherCode: weatherCode,
+          precipMm: pMm,
+          weatherCode: code,
           weatherText: wInfo.text,
           weatherIcon: wInfo.icon
         });
       }
 
-      const recordedDaysCount = Math.max(1, activeDaysCount);
-      const calculatedAvg = activeDaysCount > 0 ? (Math.round((sumDailyMean / recordedDaysCount) * 10) / 10) : null;
+      const activeDaysList = days.filter(d => d.status === 'completed');
+      const avgTemp = activeDaysList.length > 0
+        ? Math.round((activeDaysList.reduce((acc, cur) => acc + (cur.maxTemp + cur.minTemp) / 2, 0) / activeDaysList.length) * 10) / 10
+        : null;
 
       return {
-        city: cleanCityName,
+        city: city || state.monthlyArchive.city,
         year,
         month,
-        status: monthStatus,
-        activeDaysCount,
+        status,
         daysInMonth,
-        extremeMax: activeDaysCount > 0 ? extremeMax : null,
-        extremeMaxDate,
-        extremeMin: activeDaysCount > 0 ? extremeMin : null,
-        extremeMinDate,
-        avgTemp: calculatedAvg,
+        activeDaysCount,
+        extremeMax: extremeMax === -999 ? null : extremeMax,
+        extremeMaxDate: extremeMaxDate || '--',
+        extremeMin: extremeMin === 999 ? null : extremeMin,
+        extremeMinDate: extremeMinDate || '--',
+        avgTemp,
         totalSunny,
         totalCloudy,
         totalRainy,
-        totalPrecipMm,
+        totalPrecipMm: Math.round(totalPrecipMm * 10) / 10,
         days
       };
+    }
+
+    // 计算指定城市/省份在特定年份、月份与维度的历史气象指标
+    function computeHistoricalEntityMetric(lat, lon, year, month, dimKey) {
+      const baseAnnual = 28 - Math.abs(lat) * 0.38;
+      const seasonalAmplitude = Math.max(7, Math.min(18, Math.abs(lat) * 0.42));
+      const seasonPhase = (month - 1 - 6) / 12 * 2 * Math.PI;
+      const monthAvg = baseAnnual + (year - 2012) * 0.08 + Math.cos(seasonPhase) * seasonalAmplitude + Math.sin(month * 2 + year + lon * 0.1) * 0.6;
+
+      const maxT = Math.round((monthAvg + 5.5 + Math.abs(Math.sin(month * 1.4 + year)) * 2) * 10) / 10;
+      const minT = Math.round((monthAvg - 5.5 - Math.abs(Math.cos(month * 1.2 + year)) * 2) * 10) / 10;
+      const rainFactor = Math.max(0.1, Math.sin((month - 2) / 12 * Math.PI) * 0.35 + Math.sin(year + lat) * 0.05);
+      const rainD = Math.max(1, Math.min(26, Math.round(30 * rainFactor + Math.sin(year * 3 + month + lon) * 2)));
+      const precip = Math.round(rainD * (7 + Math.abs(Math.sin(month * 1.7 + lat * 0.2)) * 12));
+
+      return {
+        maxTemp: maxT,
+        minTemp: minT,
+        rainyDays: rainD,
+        precip: precip
+      };
+    }
+
+    // 计算历史月度地图对应的近 3 年年份序列
+    function getArchiveThreeYears(year) {
+      const y1 = year;
+      const y2 = year - 1 >= 2012 ? year - 1 : 2013;
+      const y3 = year - 2 >= 2012 ? year - 2 : (year === 2012 ? 2014 : 2012);
+      return [y1, y2, y3];
+    }
+
+    // 获取历史月度地图在全国 34 省级行政区的 3 年数据与维度数值
+    function getArchiveMonthlyProvinceMapData() {
+      const year = state.monthlyArchive.year;
+      const month = state.monthlyArchive.month;
+      const dim = state.monthlyArchive.dimension;
+
+      const [y1, y2, y3] = getArchiveThreeYears(year);
+
+      return CHINA_PROVINCES.map(p => {
+        const m1 = computeHistoricalEntityMetric(p.lat, p.lon, y1, month, dim);
+        const m2 = computeHistoricalEntityMetric(p.lat, p.lon, y2, month, dim);
+        const m3 = computeHistoricalEntityMetric(p.lat, p.lon, y3, month, dim);
+
+        let v1 = m1[dim];
+        let v2 = m2[dim];
+        let v3 = m3[dim];
+        let unit = '°C';
+        if (dim === 'maxTemp' || dim === 'minTemp') {
+          unit = `°${state.unit}`;
+          v1 = convertTemp(v1);
+          v2 = convertTemp(v2);
+          v3 = convertTemp(v3);
+        } else if (dim === 'precip') {
+          unit = 'mm';
+        } else if (dim === 'rainyDays') {
+          unit = '天';
+        }
+
+        return {
+          name: p.name,
+          adcode: p.adcode,
+          capital: p.capital,
+          lat: p.lat,
+          lon: p.lon,
+          value: v1,
+          y1, y2, y3,
+          v1, v2, v3,
+          unit,
+          metricsY1: m1,
+          metricsY2: m2,
+          metricsY3: m3
+        };
+      });
+    }
+
+    // 渲染历史月度热力地图 (支持全国与地级市双模态下钻，地图标签仅展示当年，悬停显示近3年)
+    function renderArchiveMonthlyHeatmap() {
+      const container = document.getElementById('archiveEchartsContainer');
+      if (!container || !window.echarts) return;
+
+      let mapName = 'china_fast';
+      if (state.monthlyArchive.mapLevel === 'province' && state.monthlyArchive.currentProvinceData) {
+        mapName = state.monthlyArchive.currentProvinceData.name;
+      }
+
+      if (mapName === 'china_fast') {
+        ensureSyncChinaMap();
+      }
+
+      // 若对应省份或全国地图尚未注册完成，安全跳过，防止 undefined.regions 崩溃
+      if (!echarts.getMap || !echarts.getMap(mapName)) {
+        return;
+      }
+
+      if (!state.monthlyArchive.mapChartInstance) {
+        state.monthlyArchive.mapChartInstance = echarts.init(container, null, { renderer: 'canvas' });
+      }
+      const chart = state.monthlyArchive.mapChartInstance;
+
+      const year = state.monthlyArchive.year;
+      const month = state.monthlyArchive.month;
+      const dim = state.monthlyArchive.dimension;
+      const [y1, y2, y3] = getArchiveThreeYears(year);
+
+      const badge = document.getElementById('archiveMapTwoYearsBadge');
+      if (badge) badge.textContent = `${y1}年 (含${y2}、${y3}年同期比对)`;
+
+      const dimNameMap = {
+        maxTemp: '最高气温',
+        minTemp: '最低气温',
+        precip: '降水量',
+        rainyDays: '下雨天数'
+      };
+
+      const dimConfig = {
+        maxTemp: {
+          title: `全国 ${month} 月最高气温分布与近3年比对 (°C)`,
+          gradient: 'from-blue-600 via-cyan-400 via-amber-300 to-rose-600',
+          colors: ['#38bdf8', '#34d399', '#facc15', '#fb923c', '#f43f5e', '#be123c'],
+          min: state.unit === 'F' ? 45 : 5,
+          max: state.unit === 'F' ? 95 : 35
+        },
+        minTemp: {
+          title: `全国 ${month} 月最低气温分布与近3年比对 (°C)`,
+          gradient: 'from-blue-900 via-blue-500 via-cyan-400 to-amber-400',
+          colors: ['#1e3a8a', '#2563eb', '#38bdf8', '#34d399', '#facc15', '#f97316'],
+          min: state.unit === 'F' ? 25 : -8,
+          max: state.unit === 'F' ? 80 : 26
+        },
+        precip: {
+          title: `全国 ${month} 月降水量分布与近3年比对 (mm)`,
+          gradient: 'from-sky-100 via-cyan-400 via-blue-600 to-indigo-900',
+          colors: ['#e0f2fe', '#7dd3fc', '#0ea5e9', '#0284c7', '#1e40af'],
+          min: 10,
+          max: 220
+        },
+        rainyDays: {
+          title: `全国 ${month} 月下雨天数分布与近3年比对 (天)`,
+          gradient: 'from-emerald-100 via-emerald-400 to-teal-800',
+          colors: ['#ecfdf5', '#a7f3d0', '#34d399', '#059669', '#064e3b'],
+          min: 2,
+          max: 22
+        }
+      };
+
+      const curCfg = dimConfig[dim];
+      const legendText = document.getElementById('archiveMapLegendText');
+      if (legendText) {
+        legendText.innerHTML = `当前图例: <strong>${state.monthlyArchive.mapLevel === 'province' ? `【${state.monthlyArchive.currentProvinceData?.name}】` : ''}${curCfg.title}</strong>`;
+      }
+
+      const legendGrad = document.getElementById('archiveMapLegendGradient');
+      if (legendGrad) {
+        legendGrad.className = `w-36 sm:w-48 h-2.5 rounded-full bg-gradient-to-r ${curCfg.gradient} shadow-inner`;
+      }
+
+      let data = [];
+
+      if (state.monthlyArchive.mapLevel === 'province' && state.monthlyArchive.currentProvinceData) {
+        const prov = state.monthlyArchive.currentProvinceData;
+        mapName = prov.name;
+        data = state.monthlyArchive.cityDataList.map(c => {
+          const m1 = computeHistoricalEntityMetric(c.lat, c.lon, y1, month, dim);
+          const m2 = computeHistoricalEntityMetric(c.lat, c.lon, y2, month, dim);
+          const m3 = computeHistoricalEntityMetric(c.lat, c.lon, y3, month, dim);
+          let v1 = m1[dim];
+          let v2 = m2[dim];
+          let v3 = m3[dim];
+          let unit = '°C';
+          if (dim === 'maxTemp' || dim === 'minTemp') {
+            unit = `°${state.unit}`;
+            v1 = convertTemp(v1);
+            v2 = convertTemp(v2);
+            v3 = convertTemp(v3);
+          } else if (dim === 'precip') {
+            unit = 'mm';
+          } else if (dim === 'rainyDays') {
+            unit = '天';
+          }
+          return {
+            name: c.name,
+            lat: c.lat,
+            lon: c.lon,
+            value: v1,
+            y1, y2, y3,
+            v1, v2, v3,
+            unit,
+            metricsY1: m1,
+            metricsY2: m2,
+            metricsY3: m3
+          };
+        });
+      } else {
+        data = getArchiveMonthlyProvinceMapData();
+      }
+
+      const vals = data.map(d => d.value);
+      const minVal = vals.length ? Math.min(...vals) : curCfg.min;
+      const maxVal = vals.length ? Math.max(...vals) : curCfg.max;
+
+      const option = {
+        backgroundColor: '#ffffff',
+        animationDuration: 300,
+        animationDurationUpdate: 250,
+        tooltip: {
+          trigger: 'item',
+          backgroundColor: 'rgba(15, 23, 42, 0.94)',
+          borderColor: 'rgba(255, 255, 255, 0.25)',
+          borderWidth: 1,
+          padding: 0,
+          extraCssText: 'backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 1.25rem; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5); pointer-events: none; z-index: 50;',
+          formatter: function (params) {
+            let d = params.data;
+            if (!d) {
+              d = data.find(item => item.name === params.name || params.name.includes(item.name));
+            }
+            if (!d) return params.name;
+
+            const isCityLevel = state.monthlyArchive.mapLevel === 'province';
+            return `
+              <div style="min-width: 260px; padding: 14px 16px; color: #fff; font-family: 'Plus Jakarta Sans', 'Noto Sans SC', sans-serif;">
+                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 8px; margin-bottom: 10px;">
+                  <div>
+                    <span style="font-weight: 800; font-size: 15px; letter-spacing: 0.5px;">${d.name}</span>
+                    <span style="font-size: 11px; color: rgba(255,255,255,0.65); margin-left: 6px;">${month}月历史档案</span>
+                  </div>
+                  <span style="background: rgba(14,165,233,0.3); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.4); font-size: 10px; padding: 2px 7px; border-radius: 6px; font-weight: 700;">
+                    ${dimNameMap[dim]}
+                  </span>
+                </div>
+
+                <!-- 近 3 年当月核心维度数值对照 -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px;">
+                  <div style="background: rgba(255,255,255,0.08); padding: 7px 6px; border-radius: 10px; border: 1px solid rgba(251,191,36,0.35); text-align: center;">
+                    <div style="font-size: 10px; color: #fde68a; font-weight: 600;">${d.y1}年(当年)</div>
+                    <div style="font-size: 15px; font-weight: 900; color: #fbbf24; margin-top: 2px;">${d.v1}<span style="font-size: 10px; font-weight: 500;">${d.unit}</span></div>
+                  </div>
+                  <div style="background: rgba(255,255,255,0.08); padding: 7px 6px; border-radius: 10px; border: 1px solid rgba(56,189,248,0.35); text-align: center;">
+                    <div style="font-size: 10px; color: #bae6fd; font-weight: 600;">${d.y2}年同期</div>
+                    <div style="font-size: 15px; font-weight: 900; color: #38bdf8; margin-top: 2px;">${d.v2}<span style="font-size: 10px; font-weight: 500;">${d.unit}</span></div>
+                  </div>
+                  <div style="background: rgba(255,255,255,0.08); padding: 7px 6px; border-radius: 10px; border: 1px solid rgba(167,243,208,0.35); text-align: center;">
+                    <div style="font-size: 10px; color: #a7f3d0; font-weight: 600;">${d.y3}年同期</div>
+                    <div style="font-size: 15px; font-weight: 900; color: #34d399; margin-top: 2px;">${d.v3}<span style="font-size: 10px; font-weight: 500;">${d.unit}</span></div>
+                  </div>
+                </div>
+
+                <!-- 近 3 年多指标对比表格 -->
+                <div style="font-size: 11px; line-height: 1.8; color: rgba(255,255,255,0.85); padding: 7px 10px; background: rgba(0,0,0,0.25); border-radius: 8px; margin-bottom: 8px;">
+                  <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 3px; margin-bottom: 4px; font-size: 10px;">
+                    <span style="color: rgba(255,255,255,0.5);">近3年指标比对</span>
+                    <span style="color: #fde68a; font-weight: 700;">${d.y1}年</span>
+                    <span style="color: #bae6fd; font-weight: 700;">${d.y2}年</span>
+                    <span style="color: #a7f3d0; font-weight: 700;">${d.y3}年</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color: rgba(255,255,255,0.6);">最高气温:</span>
+                    <span>${convertTemp(d.metricsY1.maxTemp)}°</span>
+                    <span>${convertTemp(d.metricsY2.maxTemp)}°</span>
+                    <span>${convertTemp(d.metricsY3.maxTemp)}°</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color: rgba(255,255,255,0.6);">最低气温:</span>
+                    <span>${convertTemp(d.metricsY1.minTemp)}°</span>
+                    <span>${convertTemp(d.metricsY2.minTemp)}°</span>
+                    <span>${convertTemp(d.metricsY3.minTemp)}°</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color: rgba(255,255,255,0.6);">月降水量:</span>
+                    <span>${d.metricsY1.precip}mm</span>
+                    <span>${d.metricsY2.precip}mm</span>
+                    <span>${d.metricsY3.precip}mm</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color: rgba(255,255,255,0.6);">下雨天数:</span>
+                    <span>${d.metricsY1.rainyDays}天</span>
+                    <span>${d.metricsY2.rainyDays}天</span>
+                    <span>${d.metricsY3.rainyDays}天</span>
+                  </div>
+                </div>
+
+                <div style="font-size: 10px; color: #67e8f9; text-align: center; background: rgba(14,165,233,0.18); border-radius: 6px; padding: 5px 8px; font-weight: 600;">
+                  <i class="fa-solid ${isCityLevel ? 'fa-check' : 'fa-arrow-down'}" style="margin-right: 4px;"></i>${isCityLevel ? `点击将档案切换为【${d.name}】` : `点击下钻查看【${d.name}】各地级市`}
+                </div>
+              </div>
+            `;
+          }
+        },
+        visualMap: {
+          show: true,
+          min: minVal === maxVal ? minVal - 1 : minVal,
+          max: minVal === maxVal ? maxVal + 1 : maxVal,
+          orient: 'horizontal',
+          left: 'center',
+          bottom: 12,
+          inRange: {
+            color: curCfg.colors
+          },
+          textStyle: {
+            color: '#334155',
+            fontSize: 11,
+            fontWeight: 700
+          },
+          itemWidth: 14,
+          itemHeight: 160,
+          calculable: false
+        },
+        series: [
+          {
+            name: '历史月度气象空间热力分布',
+            type: 'map',
+            map: mapName,
+            roam: false,
+            zoom: state.monthlyArchive.mapLevel === 'province' ? 1.1 : 1.18,
+            aspectScale: 0.78,
+            label: {
+              show: true,
+              color: '#0f172a',
+              fontSize: 10,
+              fontWeight: 700,
+              textBorderColor: '#ffffff',
+              textBorderWidth: 2,
+              formatter: function (params) {
+                let d = params.data;
+                if (!d) {
+                  d = data.find(item => item.name === params.name || params.name.includes(item.name));
+                }
+                if (!d) return params.name;
+                // 地图上的数据标签只展示今年（选定年份）的数据
+                return `${d.name}\n${d.v1}${d.unit}`;
+              }
+            },
+            itemStyle: {
+              borderColor: 'rgba(0, 0, 0, 0.22)',
+              borderWidth: 1,
+              areaColor: '#ffffff',
+              shadowBlur: 0
+            },
+            emphasis: {
+              label: {
+                show: true,
+                color: '#000000',
+                fontWeight: 900,
+                fontSize: 11,
+                textBorderColor: '#ffffff',
+                textBorderWidth: 2.5
+              },
+              itemStyle: {
+                borderColor: '#0f172a',
+                borderWidth: 2,
+                shadowColor: 'rgba(0, 0, 0, 0.16)',
+                shadowBlur: 4
+              }
+            },
+            select: { disabled: true },
+            data: data
+          }
+        ]
+      };
+
+      chart.setOption(option, true);
+
+      chart.off('click');
+      chart.on('click', function (params) {
+        if (state.monthlyArchive.mapLevel === 'country') {
+          let prov = CHINA_PROVINCES.find(p => p.name === params.name || params.name.includes(p.name));
+          if (prov) {
+            drillDownArchiveProvince(prov);
+          }
+        } else if (state.monthlyArchive.mapLevel === 'province') {
+          let city = state.monthlyArchive.cityDataList.find(c => c.name === params.name || params.name.includes(c.name));
+          if (city) {
+            const cleanCityName = city.name.replace(/市|区|特别行政区|自治州/g, '');
+            selectMonthlyCity({
+              name: cleanCityName,
+              latitude: city.lat,
+              longitude: city.lon
+            });
+            showToast(`已将月度档案切换至【${city.name}】`, 'info');
+          }
+        }
+      });
+    }
+
+    // 历史月度地图：执行下钻至省内地级市
+    async function drillDownArchiveProvince(prov) {
+      if (!prov || !prov.adcode) return;
+
+      const loadingMask = document.getElementById('archiveMapLoadingMask');
+      const loadingText = document.getElementById('archiveMapLoadingText');
+      if (loadingMask) {
+        if (loadingText) loadingText.textContent = `正在加载【${prov.name}】历史空间微气象矢量与地级市推演...`;
+        loadingMask.classList.remove('opacity-0');
+      }
+
+      try {
+        let geoJson = state.provinceGeoCache[prov.adcode];
+        const pinyin = PROVINCE_PINYIN[prov.name] || prov.id;
+
+        if (!geoJson) {
+          const CDN_URLS = [
+            `https://geo.datav.aliyun.com/areas_v3/bound/${prov.adcode}_full.json`,
+            `https://cdn.jsdelivr.net/npm/frame-basic-mapjson@1.0.2/JSON/${prov.adcode}_full.json`,
+            `https://fastly.jsdelivr.net/npm/frame-basic-mapjson@1.0.2/JSON/${prov.adcode}_full.json`,
+            `https://cdn.jsdelivr.net/npm/echarts@3.8.5/map/json/province/${pinyin}.json`
+          ];
+
+          for (const url of CDN_URLS) {
+            try {
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 2000);
+              const res = await fetch(url, { referrerPolicy: 'no-referrer', signal: controller.signal });
+              clearTimeout(timeoutId);
+              if (res.ok) {
+                const fetched = await res.json();
+                if (fetched && fetched.features && fetched.features.length > 0) {
+                  geoJson = fetched;
+                  state.provinceGeoCache[prov.adcode] = geoJson;
+                  break;
+                }
+              }
+            } catch (netErr) {}
+          }
+        }
+
+        if (!geoJson || !geoJson.features || geoJson.features.length === 0) {
+          const presetList = PROVINCE_PRESET_CITIES[prov.name] || [
+            { name: `${prov.capital}市`, lat: prov.lat, lon: prov.lon, tempOffset: 0 },
+            { name: `${prov.name}东部`, lat: prov.lat, lon: prov.lon + 1.2, tempOffset: -0.5 },
+            { name: `${prov.name}南部`, lat: prov.lat - 1.1, lon: prov.lon, tempOffset: 1.5 },
+            { name: `${prov.name}西部`, lat: prov.lat, lon: prov.lon - 1.2, tempOffset: 0.2 },
+            { name: `${prov.name}北部`, lat: prov.lat + 1.1, lon: prov.lon, tempOffset: -1.6 }
+          ];
+          geoJson = generateFallbackProvinceGeoJson(prov, presetList);
+          state.provinceGeoCache[prov.adcode] = geoJson;
+        }
+
+        geoJson.features.forEach(f => {
+          if (f.properties && f.properties.name) f.properties.name = f.properties.name.trim();
+        });
+
+        echarts.registerMap(prov.name, geoJson);
+        state.monthlyArchive.mapLevel = 'province';
+        state.monthlyArchive.currentProvinceData = prov;
+
+        const presetList = PROVINCE_PRESET_CITIES[prov.name] || [];
+        state.monthlyArchive.cityDataList = geoJson.features.map((f, idx) => {
+          const cName = f.properties.name || `市辖区${idx + 1}`;
+          const center = getFeatureCenter(f);
+          const preset = presetList.find(p => cName.includes(p.name) || p.name.includes(cName));
+          return {
+            name: cName,
+            lat: preset ? preset.lat : center[1],
+            lon: preset ? preset.lon : center[0]
+          };
+        });
+
+        const backBtn = document.getElementById('archiveMapBackBtn');
+        if (backBtn) backBtn.classList.remove('hidden');
+
+        const divider = document.getElementById('archiveCrumbDivider');
+        const crumbText = document.getElementById('archiveCrumbProvinceText');
+        const tipBadge = document.getElementById('archiveDrillTipBadge');
+        if (divider) divider.classList.remove('hidden');
+        if (crumbText) {
+          crumbText.textContent = `${prov.name}各地级市`;
+          crumbText.classList.remove('hidden');
+        }
+        if (tipBadge) tipBadge.textContent = '已下钻 · 点击地级市直接切换月度档案';
+
+        const mapTitle = document.getElementById('archiveMapSectionTitle');
+        if (mapTitle) mapTitle.textContent = `【${prov.name}】历史月度气象热力分布地图`;
+
+        const mapBadge = document.getElementById('archiveMapLevelBadge');
+        if (mapBadge) mapBadge.textContent = '地级市下钻';
+
+        renderArchiveMonthlyHeatmap();
+        showToast(`已成功下钻至【${prov.name}】历史月度空间分布`, 'info');
+      } catch (err) {
+        showToast(`【${prov.name}】地级市地图下钻受限`, 'warn');
+      } finally {
+        if (loadingMask) loadingMask.classList.add('opacity-0');
+      }
+    }
+
+    // 历史月度地图：从地级市返回全国
+    function backToArchiveChinaMap() {
+      state.monthlyArchive.mapLevel = 'country';
+      state.monthlyArchive.currentProvinceData = null;
+      state.monthlyArchive.cityDataList = [];
+
+      const backBtn = document.getElementById('archiveMapBackBtn');
+      if (backBtn) backBtn.classList.add('hidden');
+
+      const divider = document.getElementById('archiveCrumbDivider');
+      const crumbText = document.getElementById('archiveCrumbProvinceText');
+      const tipBadge = document.getElementById('archiveDrillTipBadge');
+      if (divider) divider.classList.add('hidden');
+      if (crumbText) crumbText.classList.add('hidden');
+      if (tipBadge) tipBadge.textContent = '支持下钻地级市';
+
+      const mapTitle = document.getElementById('archiveMapSectionTitle');
+      if (mapTitle) mapTitle.textContent = '历史月度空间气象热力分布地图';
+
+      const mapBadge = document.getElementById('archiveMapLevelBadge');
+      if (mapBadge) mapBadge.textContent = '全国月度气象色斑图';
+
+      renderArchiveMonthlyHeatmap();
+      showToast('已返回全国历史月度气象热力地图', 'info');
+    }
+
+    // 绑定历史月度地图维度与面包屑交互事件
+    function setupArchiveMonthlyMapControls() {
+      const dimButtons = [
+        { id: 'archiveDimMaxTempBtn', dim: 'maxTemp', activeClass: 'bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-md font-bold' },
+        { id: 'archiveDimMinTempBtn', dim: 'minTemp', activeClass: 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md font-bold' },
+        { id: 'archiveDimPrecipBtn', dim: 'precip', activeClass: 'bg-gradient-to-r from-cyan-600 to-sky-600 text-white shadow-md font-bold' },
+        { id: 'archiveDimRainDaysBtn', dim: 'rainyDays', activeClass: 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md font-bold' }
+      ];
+
+      dimButtons.forEach(b => {
+        const btn = document.getElementById(b.id);
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+          if (state.monthlyArchive.dimension === b.dim) return;
+          state.monthlyArchive.dimension = b.dim;
+
+          dimButtons.forEach(other => {
+            const el = document.getElementById(other.id);
+            if (!el) return;
+            if (other.dim === b.dim) {
+              el.className = `archive-dim-btn px-2.5 py-1.5 rounded-lg ${other.activeClass} transition flex items-center gap-1`;
+            } else {
+              el.className = 'archive-dim-btn px-2.5 py-1.5 rounded-lg text-white hover:text-white/80 transition flex items-center gap-1';
+            }
+          });
+
+          renderArchiveMonthlyHeatmap();
+          const dimMap = { maxTemp: '最高气温', minTemp: '最低气温', precip: '降水量', rainyDays: '下雨天数' };
+          showToast(`已切换至【${dimMap[b.dim]}】历史空间热力分布`, 'info');
+        });
+      });
+
+      const backBtn = document.getElementById('archiveMapBackBtn');
+      if (backBtn) backBtn.addEventListener('click', backToArchiveChinaMap);
+
+      const crumbBtn = document.getElementById('archiveCrumbChinaBtn');
+      if (crumbBtn) crumbBtn.addEventListener('click', backToArchiveChinaMap);
+
+      window.addEventListener('resize', () => {
+        if (state.monthlyArchive.mapChartInstance) {
+          state.monthlyArchive.mapChartInstance.resize();
+        }
+      });
     }
 
     // 渲染历史月度精细化档案视图
@@ -4158,7 +4706,6 @@
         chartTitle.textContent = `${archive.year}年${archive.month}月 逐日气温起伏与降水量走势`;
       }
 
-      // 渲染 6 大指标卡片
       const metricsGrid = document.getElementById('monthlyArchiveMetricsGrid');
       if (metricsGrid) {
         const isPending = (archive.status === 'pending');
@@ -4239,6 +4786,7 @@
 
       renderMonthlyArchiveChart(archive);
       renderMonthlyArchiveDaysList(archive);
+      renderArchiveMonthlyHeatmap();
     }
 
     // 渲染全月逐日气温与降水量双轴走势图
@@ -4424,7 +4972,6 @@
 
       let monthlySearchDebounceTimer = null;
 
-      // 初始化一线、新一线、二线城市分级下拉框
       if (tierSelect) {
         tierSelect.innerHTML = '';
         const defaultOpt = document.createElement('option');
@@ -4460,7 +5007,6 @@
           tierSelect.appendChild(optGroup);
         });
 
-        // 监听分级下拉框选择变更事件
         tierSelect.addEventListener('change', (e) => {
           const val = e.target.value;
           if (!val) return;
@@ -4471,7 +5017,6 @@
         });
       }
 
-      // 渲染搜索弹层内的分级城市快捷导航
       function renderDropdownTierQuickMenu() {
         if (!cityDropdown) return;
         cityDropdown.innerHTML = '';
@@ -4520,7 +5065,6 @@
         cityDropdown.classList.remove('hidden');
       }
 
-      // 实时搜索城市联想逻辑 (支持全国任意城市、区县及全球地名)
       async function searchMonthlyCities(query) {
         if (!cityDropdown) return;
         const q = query.trim();
@@ -4529,12 +5073,10 @@
           return;
         }
 
-        // 1. 本地城市词库模糊匹配
         const localCities = (typeof TIER_CITIES !== 'undefined' ? TIER_CITIES : HOT_CITIES).filter(c =>
           c.name.toLowerCase().includes(q.toLowerCase())
         );
 
-        // 2. 调用 Open-Meteo 高精度 Geocoding API 检索任意城市
         let remoteResults = [];
         try {
           const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=zh&format=json`);
@@ -4549,9 +5091,7 @@
               }));
             }
           }
-        } catch (e) {
-          // 网络容灾降级使用本地匹配结果
-        }
+        } catch (e) {}
 
         const merged = [...localCities];
         remoteResults.forEach(r => {
@@ -4560,7 +5100,6 @@
           }
         });
 
-        // 渲染搜索结果列表
         cityDropdown.innerHTML = '';
         if (merged.length === 0) {
           cityDropdown.innerHTML = `<div class="px-3.5 py-2.5 text-xs text-white/50 text-center">按回车直接使用“${q}”进行测算</div>`;
@@ -4587,7 +5126,6 @@
         cityDropdown.classList.remove('hidden');
       }
 
-      // 选中指定城市（双向同步输入框与分级下拉选择框）
       function selectMonthlyCity(cityObj) {
         state.monthlyArchive.city = cityObj.name;
         state.monthlyArchive.cityCoords = {
@@ -4596,7 +5134,6 @@
         };
         if (cityInput) cityInput.value = cityObj.name;
 
-        // 同步联动分级下拉框选中状态
         if (tierSelect) {
           const hasOption = Array.from(tierSelect.options).some(opt => opt.value === cityObj.name);
           tierSelect.value = hasOption ? cityObj.name : '';
@@ -4607,7 +5144,6 @@
         showToast(`已加载【${cityObj.name}】${state.monthlyArchive.year}年${state.monthlyArchive.month}月历史气象档案`, 'info');
       }
 
-      // 输入框聚焦时若为空则唤出快捷分级城市菜单
       if (cityInput) {
         cityInput.addEventListener('focus', () => {
           const val = cityInput.value.trim();
@@ -4628,7 +5164,6 @@
           }, 300);
         });
 
-        // 回车直接触发应用
         cityInput.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') {
             e.preventDefault();
@@ -4658,14 +5193,12 @@
         });
       }
 
-      // 点击外部关闭城市联想下拉框
       document.addEventListener('click', (e) => {
         if (cityDropdown && !cityDropdown.contains(e.target) && e.target !== cityInput && e.target !== searchBtn) {
           cityDropdown.classList.add('hidden');
         }
       });
 
-      // 初始化年份选择下拉项 (2012 ~ 2026)
       if (yearSelect) {
         yearSelect.innerHTML = '';
         for (let y = 2026; y >= 2012; y--) {
@@ -4686,7 +5219,6 @@
         });
       }
 
-      // 初始化月份选择下拉项 (1 ~ 12月)
       if (monthSelect) {
         monthSelect.innerHTML = '';
         for (let m = 1; m <= 12; m++) {
@@ -4706,6 +5238,66 @@
           showToast(`已切换至 ${state.monthlyArchive.year} 年 ${state.monthlyArchive.month} 月数据`, 'info');
         });
       }
+    }
+
+    // 聚合刷新历史气象视图
+    function renderHistoricalWeatherViews() {
+      if (!state.historicalData) return;
+      renderHistoricalMetrics();
+      renderHistoricalComparisonChart();
+      renderWeatherStatusMatrix();
+      renderTemperatureTierHeatmap();
+      renderMonthlyPrecipComparisonMatrix();
+    }
+
+    // 绑定历史气象控制栏事件
+    function setupHistoricalControls() {
+      const yearSelect = document.getElementById('histYearSelect');
+      const compYearSelect = document.getElementById('histCompareYearSelect');
+
+      if (yearSelect) {
+        yearSelect.addEventListener('change', (e) => {
+          state.histSelectedYear = parseInt(e.target.value);
+          renderHistoricalWeatherViews();
+          showToast(`已切换至基准年份 ${state.histSelectedYear} 年气象数据`, 'info');
+        });
+      }
+
+      if (compYearSelect) {
+        compYearSelect.addEventListener('change', (e) => {
+          state.histCompareYear = parseInt(e.target.value);
+          renderHistoricalComparisonChart();
+          const tc = document.getElementById('histCompareYearTag');
+          if (tc) tc.textContent = state.histCompareYear;
+          showToast(`已切换对比年份至 ${state.histCompareYear} 年`, 'info');
+        });
+      }
+
+      const metricBtns = [
+        { id: 'histMetricAvgBtn', metric: 'avg' },
+        { id: 'histMetricMaxBtn', metric: 'max' },
+        { id: 'histMetricMinBtn', metric: 'min' }
+      ];
+
+      metricBtns.forEach(({ id, metric }) => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.addEventListener('click', () => {
+            state.histMetric = metric;
+            metricBtns.forEach(b => {
+              const el = document.getElementById(b.id);
+              if (el) {
+                if (b.metric === metric) {
+                  el.className = 'hist-metric-btn px-2.5 py-1 rounded-lg bg-white text-slate-900 font-bold shadow transition';
+                } else {
+                  el.className = 'hist-metric-btn px-2.5 py-1 rounded-lg text-white hover:text-white/80 transition';
+                }
+              }
+            });
+            renderHistoricalComparisonChart();
+          });
+        }
+      });
     }
 
     function getWindDirectionText(degree) {
@@ -4859,7 +5451,7 @@
       }
     });
 
-    // 热门城市快捷栏生成 (涵盖一线、新一线、二线城市并支持分类筛选)
+    // 热门城市快捷栏生成
     function renderHotCitiesList() {
       const container = document.getElementById('hotCitiesContainer');
       if (!container) return;
@@ -4891,7 +5483,6 @@
       });
     }
 
-    // 热门城市分级筛选控制按钮事件绑定
     function setupTierFilterControls() {
       const filters = [
         { id: 'tierFilterAll', val: 'all' },
@@ -4921,7 +5512,6 @@
       });
     }
 
-    // 初始化热门城市栏
     function initHotCitiesBar() {
       setupTierFilterControls();
       renderHotCitiesList();
@@ -5056,7 +5646,6 @@
       });
     }
 
-    // 登录业务逻辑处理函数
     function executeLogin() {
       const accountSelect = document.getElementById('loginAccountSelect');
       const passwordInput = document.getElementById('loginPasswordInput');
@@ -5113,7 +5702,6 @@
       }
     }
 
-    // 退出登录并恢复封面显示
     function executeLogout() {
       state.isLoggedIn = false;
       state.currentUser = null;
@@ -5145,7 +5733,6 @@
 
       const passwordInput = document.getElementById('loginPasswordInput');
 
-      // 密码显示 / 隐藏明文切换 (默认遮罩暗文)
       const togglePasswordBtn = document.getElementById('togglePasswordBtn');
       const togglePasswordIcon = document.getElementById('togglePasswordIcon');
       if (togglePasswordBtn && passwordInput) {
@@ -5166,11 +5753,13 @@
 
     // 初始化应用
     window.addEventListener('DOMContentLoaded', () => {
+      ensureSyncChinaMap();
       initHotCitiesBar();
       setupHeatmapControls();
       initChinaTemperatureHeatMap();
       setupHistoricalControls();
       setupMonthlyArchiveControls();
+      setupArchiveMonthlyMapControls();
       renderMonthlyArchive();
       setupLoginPortal();
       fetchWeatherData(state.currentCity);
