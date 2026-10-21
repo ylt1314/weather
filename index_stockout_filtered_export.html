@@ -1,0 +1,3512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>电商缺货与履约时效在线分析系统</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 多源 CDN 容错加载 SheetJS，彻底解决 XLSX is not defined 异常 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script>
+    if (typeof XLSX === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>');
+    }
+  </script>
+  <script>
+    if (typeof XLSX === 'undefined') {
+      document.write('<script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>');
+    }
+  </script>
+  <!-- 引入 ExcelJS 用于在导出的 Excel 中真实嵌入图片 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+  <script>
+    if (typeof ExcelJS === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"><\/script>');
+    }
+  </script>
+  <!-- Font Awesome 图标库 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+    /* 表1升级：优雅现代商务表格，细边框与柔和层级 */
+    .table-target-spec {
+      border-collapse: separate;
+      border-spacing: 0;
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      overflow: hidden;
+      background-color: #ffffff;
+    }
+    .table-target-spec th, .table-target-spec td {
+      border-right: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: center;
+      padding: 9px 12px;
+      font-size: 13px;
+    }
+    .table-target-spec th:last-child, .table-target-spec td:last-child {
+      border-right: none;
+    }
+    .table-target-spec thead tr:first-child th {
+      background-color: #f8fafc;
+      font-weight: 700;
+      color: #334155;
+      border-bottom: 1px solid #cbd5e1;
+    }
+    .table-target-spec thead tr:nth-child(2) th {
+      background-color: #f1f5f9;
+      font-weight: 600;
+      color: #475569;
+      border-bottom: 2px solid #cbd5e1;
+    }
+    .table-target-spec tbody tr:hover {
+      background-color: #f8fafc;
+    }
+    .table-target-spec tfoot tr {
+      background-color: #f8fafc;
+      font-weight: 700;
+    }
+    /* 专属于【缺货总数】与【缺货超时总数】的特别强调底纹 */
+    .highlight-col-stockout {
+      background-color: #fff1f2 !important;
+      color: #be123c !important;
+      font-weight: 800;
+    }
+    .highlight-col-overdue {
+      background-color: #fefce8 !important;
+      color: #b45309 !important;
+      font-weight: 800;
+    }
+    .highlight-head-stockout {
+      background-color: #ffe4e6 !important;
+      color: #9f1239 !important;
+      font-weight: 700;
+      border-bottom: 2px solid #fda4af !important;
+    }
+    .highlight-head-overdue {
+      background-color: #fef08a !important;
+      color: #854d0e !important;
+      font-weight: 700;
+      border-bottom: 2px solid #fde047 !important;
+    }
+    .card-shadow {
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+    .badge-overdue {
+      background-color: #fee2e2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+    .badge-normal {
+      background-color: #dcfce7;
+      color: #16a34a;
+      border: 1px solid #bbf7d0;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1;
+      border-radius: 4px;
+    }
+    /* 固定置顶汇总行高亮阴影效果 */
+    .summary-pinned-row {
+      position: sticky;
+      top: 37px;
+      z-index: 15;
+      background: #fef9c3;
+      border-bottom: 2px solid #eab308;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    }
+    /* 浅色高质感电商履约商务封面背景与网格 */
+    .biz-login-canvas {
+      background: 
+        radial-gradient(1200px circle at 15% 15%, rgba(59, 130, 246, 0.08) 0%, transparent 60%),
+        radial-gradient(900px circle at 85% 85%, rgba(99, 102, 241, 0.09) 0%, transparent 50%),
+        linear-gradient(135deg, #f8fafc 0%, #f1f5f9 45%, #e2e8f0 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .biz-grid-mesh {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+    }
+    .login-card-elevated {
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(226, 232, 240, 0.9);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- 登录遮罩层（默认根据 sessionStorage 状态判断展示） -->
+  <div id="loginOverlay" class="fixed inset-0 z-50 biz-login-canvas flex items-center justify-center p-4">
+    <!-- 复合背景：履约链路网格与供应链拓扑图 -->
+    <div class="absolute inset-0 biz-grid-mesh pointer-events-none opacity-80"></div>
+    
+    <!-- 供应链拓扑链路装饰背景矢量图 -->
+    <div class="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center opacity-45">
+      <svg class="w-full h-full max-w-7xl" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- 履约链路主干流转虚线 -->
+        <path d="M120 400 C 300 220, 480 580, 680 400 C 860 220, 960 480, 1100 360" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="6 6"/>
+        <path d="M150 520 C 350 380, 520 620, 720 480 C 880 360, 1020 520, 1120 420" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="4 4"/>
+        
+        <!-- 履约节点光圈与图标标注点 -->
+        <g opacity="0.85">
+          <!-- 节点1：入库质检/中心仓 -->
+          <circle cx="210" cy="330" r="28" fill="#ffffff" stroke="#93c5fd" stroke-width="2"/>
+          <circle cx="210" cy="330" r="8" fill="#3b82f6"/>
+          <text x="210" y="375" text-anchor="middle" font-size="11" fill="#64748b" font-weight="600">中心仓入库 · 质检</text>
+
+          <!-- 节点2：订单聚单分流 -->
+          <circle cx="430" cy="480" r="24" fill="#ffffff" stroke="#a5b4fc" stroke-width="2"/>
+          <circle cx="430" cy="480" r="7" fill="#6366f1"/>
+          <text x="430" y="520" text-anchor="middle" font-size="11" fill="#64748b" font-weight="600">全渠道订单分流中心</text>
+
+          <!-- 节点3：履约时效中枢 -->
+          <circle cx="680" cy="400" r="34" fill="#ffffff" stroke="#38bdf8" stroke-width="2.5"/>
+          <circle cx="680" cy="400" r="10" fill="#0284c7"/>
+          <text x="680" y="450" text-anchor="middle" font-size="12" fill="#0369a1" font-weight="700">时效预警中枢 · SLA监控</text>
+
+          <!-- 节点4：干线分拨 -->
+          <circle cx="890" cy="310" r="26" fill="#ffffff" stroke="#fcd34d" stroke-width="2"/>
+          <circle cx="890" cy="310" r="8" fill="#f59e0b"/>
+          <text x="890" y="352" text-anchor="middle" font-size="11" fill="#78350f" font-weight="600">干线分拨中心</text>
+
+          <!-- 节点5：末端履约交付 -->
+          <circle cx="1060" cy="400" r="28" fill="#ffffff" stroke="#86efac" stroke-width="2"/>
+          <circle cx="1060" cy="400" r="8" fill="#22c55e"/>
+          <text x="1060" y="445" text-anchor="middle" font-size="11" fill="#15803d" font-weight="600">终端精准履约交付</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- 登录主卡片：商务现代微质感卡片 -->
+    <div class="bg-white/95 backdrop-blur-xl rounded-2xl max-w-md w-full p-8 login-card-elevated border border-slate-200/90 relative z-10">
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center justify-center gap-2 px-3 py-1 bg-slate-100 rounded-full border border-slate-200 text-[11px] text-slate-600 font-semibold mb-3">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>企业级供应链时效监控中心</span>
+        </div>
+        <div class="w-14 h-14 bg-slate-900 rounded-2xl mx-auto flex items-center justify-center text-yellow-400 shadow-lg shadow-slate-900/10 mb-3.5 p-3">
+          <i class="fa-solid fa-boxes-packing text-2xl"></i>
+        </div>
+        <h2 class="text-xl font-bold text-slate-900 tracking-tight">电商全渠道履约时效分析系统</h2>
+        <p class="text-xs text-slate-500 mt-1">请选择企业授权工号并输入密码进入系统</p>
+      </div>
+
+      <form id="loginForm" class="space-y-4" onsubmit="event.preventDefault(); handleLogin();">
+        <!-- 账号工号由输入框升级为规范企业下拉菜单 -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+            <span>授权登录工号</span>
+            <span class="text-[11px] font-normal text-slate-400">下拉选择授权账号</span>
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <i class="fa-regular fa-id-badge text-sm"></i>
+            </span>
+            <select id="loginUsername" required class="w-full pl-10 pr-9 py-2.5 text-sm bg-white border border-slate-300 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-slate-900 focus:border-slate-900 focus:outline-none transition appearance-none cursor-pointer hover:border-slate-400">
+              <option value="" disabled selected>请选择授权登录工号...</option>
+              <option value="10211">工号 10211（供应链与履约监控组）</option>
+              <option value="14599">工号 14599（全渠道运营与配发管理部）</option>
+            </select>
+            <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
+              <i class="fa-solid fa-chevron-down text-xs"></i>
+            </span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+            <span>访问密码</span>
+            <span class="text-[11px] font-normal text-slate-400">安全密文脱敏</span>
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <i class="fa-solid fa-lock text-sm"></i>
+            </span>
+            <input type="password" id="loginPassword" required placeholder="请输入登录密码" class="w-full pl-10 pr-10 py-2.5 text-sm bg-white border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-slate-900 focus:border-slate-900 focus:outline-none transition hover:border-slate-400">
+            <button type="button" id="togglePasswordBtn" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600">
+              <i class="fa-regular fa-eye-slash text-sm" id="eyeIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <div id="loginErrorMsg" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200">
+          <i class="fa-solid fa-circle-exclamation mr-1"></i> 工号或访问密码不正确，请核对后重试！
+        </div>
+
+        <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-yellow-400 font-bold py-2.5 px-4 rounded-xl text-sm shadow-md transition duration-150 flex items-center justify-center gap-2 cursor-pointer mt-2">
+          <span>进入履约分析工作台</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+      </form>
+
+      <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+        <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-emerald-500"></i> 数据传输脱敏加密</span>
+        <span class="font-mono">SLA v3.9 Enterprise</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 全局解析大文件 Loading 遮罩层 -->
+  <div id="globalLoadingMask" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex flex-col items-center justify-center text-white">
+    <div class="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mb-4"></div>
+    <h3 class="text-base font-bold tracking-wide" id="loadingTitle">正在智能解析海量数据...</h3>
+    <p class="text-xs text-slate-300 mt-2" id="loadingDesc">自动探测最优数据表与深度校准范围，支持数万行并发分析</p>
+  </div>
+
+  <!-- 顶部导航栏 -->
+  <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-lg bg-yellow-400 flex items-center justify-center text-slate-900 shadow">
+          <i class="fa-solid fa-boxes-packing text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            电商全渠道缺货与履约时效分析系统
+            <span class="text-xs bg-yellow-400 text-slate-900 font-semibold px-2 py-0.5 rounded">v3.9 Pro</span>
+          </h1>
+          <p class="text-xs text-slate-400">缺货数量直接读取 · 尾款总数聚合 · 单品超时透视 · 货号大图规格透视矩阵</p>
+        </div>
+      </div>
+
+      <!-- 右侧控制区：时间与已登录用户 -->
+      <div class="flex items-center flex-wrap gap-3">
+        <div class="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700 text-xs">
+          <i class="fa-regular fa-clock text-yellow-400"></i>
+          <span class="text-slate-300">判定基准：</span>
+          <input type="datetime-local" id="benchmarkInput" class="bg-slate-900 text-white border border-slate-600 rounded px-2 py-0.5 focus:outline-none">
+          <button id="btnSetNow" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 py-0.5 rounded transition text-[11px]">
+            当前
+          </button>
+          <button id="btnSyncDataDate" class="bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-semibold px-2 py-0.5 rounded transition text-[11px] hidden" title="将基准时间快速同步到数据发货日次日，快速查看缺货超时效果">
+            对齐数据日期
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 text-xs">
+          <i class="fa-regular fa-circle-user text-emerald-400"></i>
+          <span class="text-slate-300">工号: <span id="currentLoggedUser" class="font-mono font-bold text-yellow-400">-</span></span>
+          <button id="btnLogout" class="text-slate-400 hover:text-red-400 ml-1 transition" title="退出登录">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主体内容 -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- 文件上传与快捷操作栏 -->
+    <div class="bg-white rounded-xl p-5 border border-slate-200 card-shadow flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex-1 w-full">
+        <!-- 拖拽上传区域 -->
+        <div id="dropZone" class="border-2 border-dashed border-slate-300 hover:border-yellow-500 rounded-lg p-4 text-center cursor-pointer transition bg-slate-50 hover:bg-yellow-50/30 flex items-center justify-center gap-3">
+          <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-400 group-hover:text-yellow-600"></i>
+          <div class="text-left">
+            <p class="text-sm font-medium text-slate-700">
+              点击上传或拖拽 Excel 文件到此处 <span class="text-xs text-slate-500">（支持 .xlsx, .xls, .csv）</span>
+            </p>
+            <p class="text-xs text-slate-400" id="fileInfoText">自动精准识别【缺货数量】列、订单号、尾款状态、预售发货时间、支付时间、渠道等字段</p>
+          </div>
+          <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" class="hidden">
+        </div>
+      </div>
+
+      <!-- 快速按钮组 -->
+      <div class="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end">
+        <button id="btnLoadSample" class="text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-3.5 py-2.5 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+          <i class="fa-solid fa-flask text-slate-500"></i> 重载完整测试数据
+        </button>
+        <button id="btnExportDetail" class="text-xs font-medium bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+          <i class="fa-solid fa-file-excel"></i> 导出商品缺货明细(含图)
+        </button>
+      </div>
+    </div>
+
+    <!-- 1. 顶端 KPI 关键指标看板：首卡缺货数量严格来源于表格【缺货数量】列总和 -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+      <div class="bg-white p-3.5 rounded-xl border-2 border-red-300 card-shadow bg-red-50/30">
+        <p class="text-xs text-red-600 font-bold flex items-center gap-1">
+          <i class="fa-solid fa-circle-exclamation text-red-500"></i> 缺货数量
+        </p>
+        <p class="text-2xl font-black text-red-600 mt-1" id="kpiMainStockoutQty">0</p>
+        <span class="text-[11px] text-slate-500 font-medium">表格总缺货件数: <span id="kpiTotalQty" class="font-bold text-slate-700">0</span></span>
+      </div>
+      <div class="bg-white p-3.5 rounded-xl border border-slate-200 card-shadow">
+        <p class="text-xs text-slate-500 font-medium">已付尾款缺货数</p>
+        <p class="text-xl font-bold text-blue-600 mt-1" id="kpiPaidQty">0</p>
+        <span class="text-[11px] text-slate-400">未付尾款缺货: <span id="kpiUnpaidQty" class="text-slate-600 font-medium">0</span></span>
+      </div>
+      <div class="bg-white p-3.5 rounded-xl border border-slate-200 card-shadow">
+        <p class="text-xs text-slate-500 font-medium">预售缺货超时数</p>
+        <p class="text-xl font-bold text-amber-600 mt-1" id="kpiPresaleOverdue">0</p>
+        <span class="text-[11px] text-amber-600">基准时间 > 发货时间</span>
+      </div>
+      <div class="bg-white p-3.5 rounded-xl border border-slate-200 card-shadow">
+        <p class="text-xs text-slate-500 font-medium">现货缺货超时数</p>
+        <p class="text-xl font-bold text-orange-600 mt-1" id="kpiSpotOverdue">0</p>
+        <span class="text-[11px] text-orange-600">支付时间距今 > 2天</span>
+      </div>
+      <div class="bg-white p-3.5 rounded-xl border-2 border-amber-300 card-shadow bg-amber-50/20">
+        <p class="text-xs text-amber-700 font-bold">缺货超时总件数</p>
+        <p class="text-2xl font-black text-amber-600 mt-1" id="kpiTotalOverdue">0</p>
+        <span class="text-[11px] text-amber-600" id="kpiOverdueScopeText">当前筛选范围</span>
+      </div>
+      <div class="bg-white p-3.5 rounded-xl border border-slate-200 card-shadow">
+        <p class="text-xs text-slate-500 font-medium">缺货款号 / SKU款数</p>
+        <p class="text-xl font-bold text-purple-600 mt-1 flex items-baseline gap-1" id="kpiSpuSkuDisplay">
+          <span id="kpiSpuCount">0</span>
+          <span class="text-xs font-semibold text-purple-400">款</span>
+          <span class="text-slate-300 font-normal mx-0.5">/</span>
+          <span id="kpiSkuCount" class="text-indigo-600">0</span>
+          <span class="text-xs font-semibold text-indigo-400">SKU</span>
+        </p>
+        <span class="text-[11px] text-slate-400">总订单: <span id="kpiTotalOrders" class="font-bold text-slate-700">0</span> 笔</span>
+      </div>
+    </div>
+
+    <!-- 模块一：缺货与超时汇总表（【缺货总数】= 已付尾款 + 未付尾款，各渠道按缺货总数降序排列） -->
+    <div class="bg-white rounded-xl border border-slate-200 card-shadow overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
+        <div class="flex items-center gap-2.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 ring-4 ring-yellow-100"></span>
+          <h2 class="text-base font-bold text-slate-800">模块一：缺货与超时汇总表</h2>
+          <span class="text-xs text-slate-500 bg-slate-200 px-2 py-0.5 rounded">缺货总数 = 已付尾款 + 未付尾款（渠道按缺货总数降序）</span>
+        </div>
+
+        <!-- 尾款状态筛选下拉框 -->
+        <div class="flex items-center gap-2 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs shadow-sm">
+          <span class="text-slate-600 font-medium"><i class="fa-solid fa-filter text-yellow-500 mr-1"></i>尾款状态筛选：</span>
+          <select id="tailStatusFilterSelect" class="bg-transparent font-semibold text-slate-800 focus:outline-none cursor-pointer">
+            <option value="all">全部状态 (已付尾款 + 未付尾款)</option>
+            <option value="paid">仅筛选：已付尾款</option>
+            <option value="unpaid">仅筛选：未付尾款</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="p-5 overflow-x-auto custom-scrollbar">
+        <table class="table-target-spec min-w-[1020px]">
+          <thead>
+            <!-- 第一行表头 -->
+            <tr>
+              <th rowspan="2" class="align-middle" style="width: 140px;">渠道</th>
+              <th colspan="3">尾款状态分布与缺货总量</th>
+              <th colspan="2">预售情况 (当前筛选)</th>
+              <th colspan="2">无预售(现货)情况</th>
+              <th colspan="2">有预售情况</th>
+              <th rowspan="2" class="align-middle highlight-head-overdue" style="width: 110px;">缺货超时总数</th>
+            </tr>
+            <!-- 第二行表头：仅对【缺货总数】与【缺货超时总数】做特别底纹强调 -->
+            <tr>
+              <th style="width: 80px;">已付尾款</th>
+              <th style="width: 80px;">未付尾款</th>
+              <th class="highlight-head-stockout" style="width: 90px;">缺货总数 ▼</th>
+              <th style="width: 80px;">不预售</th>
+              <th style="width: 80px;">预售</th>
+              <th style="width: 80px;">已超时</th>
+              <th style="width: 80px;">未超时</th>
+              <th style="width: 80px;">未超时</th>
+              <th style="width: 80px;">已超时</th>
+            </tr>
+          </thead>
+          <tbody id="summaryTableBody">
+            <!-- 动态注入数据行 -->
+          </tbody>
+          <tfoot id="summaryTableFoot">
+            <!-- 动态注入汇总合计 -->
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="px-5 py-2.5 bg-slate-50 text-xs text-slate-500 border-t border-slate-200 flex flex-wrap justify-between items-center gap-2">
+        <span>💡 明确口径：<strong>【缺货总数】= 已付尾款 + 未付尾款</strong>；渠道行已严格按【缺货总数】从高到低自动排序</span>
+        <span class="font-medium text-slate-600">特别强调：仅高亮【缺货总数】与【缺货超时总数】</span>
+      </div>
+    </div>
+
+    <!-- 模块二：按日期统计透视矩阵（各渠道行按总计降序排序） -->
+    <div class="bg-white rounded-xl border border-slate-200 card-shadow overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
+        <div class="flex items-center gap-2.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-blue-500 ring-4 ring-blue-100"></span>
+          <h2 class="text-base font-bold text-slate-800">模块二：渠道 × 履约承诺/超时时效日期透视矩阵</h2>
+          <span class="text-xs text-slate-500 bg-slate-200 px-2 py-0.5 rounded">渠道行已自动按【总计】降序排布</span>
+        </div>
+        <!-- 筛选控件组：尾款状态筛选 + 缺货超时/未超时筛选联动 -->
+        <div class="flex flex-wrap items-center gap-2.5 text-xs">
+          <span class="text-slate-500 hidden xl:inline">时效规则：预售取【发货时间】，现货取【支付+2天】</span>
+          
+          <!-- 尾款状态筛选 -->
+          <div class="flex items-center gap-1.5 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-sm">
+            <span class="text-slate-600 font-medium"><i class="fa-solid fa-money-check-dollar text-slate-400 mr-1"></i>尾款状态筛选：</span>
+            <select id="mod2TailFilterSelect" class="bg-transparent font-medium text-slate-800 focus:outline-none cursor-pointer">
+              <option value="all" selected>全部尾款状态 (已付 + 未付)</option>
+              <option value="paid">仅已付尾款</option>
+              <option value="unpaid">仅未付尾款</option>
+            </select>
+          </div>
+
+          <!-- 缺货超时 / 缺货未超时 筛选 -->
+          <div class="flex items-center gap-1.5 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-sm">
+            <span class="text-slate-600 font-medium"><i class="fa-solid fa-clock-rotate-left text-slate-400 mr-1"></i>时效状态筛选：</span>
+            <select id="mod2OverdueFilterSelect" class="bg-transparent font-medium text-slate-800 focus:outline-none cursor-pointer">
+              <option value="all" selected>全部 (超时 + 未超时)</option>
+              <option value="overdue">仅缺货超时</option>
+              <option value="normal">仅缺货未超时</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-5 overflow-x-auto custom-scrollbar">
+        <table id="datePivotTable" class="w-full text-sm text-left border-collapse border border-slate-200">
+          <thead id="datePivotHead" class="bg-slate-100 text-slate-700 font-semibold text-xs border-b border-slate-300">
+            <!-- 动态生成日期列 -->
+          </thead>
+          <tbody id="datePivotBody" class="divide-y divide-slate-200">
+            <!-- 动态生成渠道行（按总计降序） -->
+          </tbody>
+          <tfoot id="datePivotFoot" class="bg-slate-50 font-bold border-t-2 border-slate-300">
+            <!-- 动态合计 -->
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- 模块二新增：不同日期时段缺货超时数量折线面积图 -->
+      <div class="px-5 py-4 border-t border-slate-200 bg-slate-50/50">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-600 ring-4 ring-blue-100"></span>
+            <h3 class="text-xs font-bold text-slate-800">各履约/时效日期缺货与超时趋势透视 (双折线面积图)</h3>
+            <span class="text-[11px] text-slate-500 bg-slate-200/80 px-2 py-0.5 rounded">受上方尾款状态与时效状态联动</span>
+          </div>
+          <div class="flex items-center gap-3 text-xs text-slate-600">
+            <span class="flex items-center gap-1.5"><span class="w-3 h-2 bg-amber-500/40 border border-amber-500 rounded-sm inline-block"></span> 缺货超时趋势: <strong class="text-amber-700 font-mono font-bold ml-1" id="mod2ChartOverdueText">0 件</strong></span>
+            <span class="text-slate-300">|</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-2 bg-indigo-500/40 border border-indigo-500 rounded-sm inline-block"></span> 预售发货缺货: <strong class="text-indigo-700 font-mono font-bold ml-1" id="mod2ChartPresaleText">0 件</strong></span>
+            <span class="text-slate-300">|</span>
+            <span>时段峰值: <strong class="text-red-600 font-mono font-bold" id="mod2ChartPeakText">0 件</strong></span>
+          </div>
+        </div>
+
+        <!-- 响应式 SVG 折线面积图容器 -->
+        <div id="mod2AreaChartContainer" class="w-full min-h-[220px] bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center justify-center relative overflow-hidden">
+          <span class="text-xs text-slate-400">正在生成时效日期折线面积图...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 模块三：货号维度缺货与超时汇总看板（由原模块四上移升级为模块三，大图再放大并紧凑后续列宽） -->
+    <div class="bg-white rounded-xl border border-slate-200 card-shadow overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
+        <div class="flex items-center gap-2.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 ring-4 ring-indigo-100"></span>
+          <h2 class="text-base font-bold text-slate-800">模块三：货号维度缺货与超时汇总看板</h2>
+          <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-medium" id="mod4SpuCountBadge">共 0 个货号款</span>
+        </div>
+
+        <!-- 筛选与搜索工具条 -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <!-- 筛选日期 -->
+          <div class="flex items-center gap-1 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs">
+            <i class="fa-regular fa-calendar text-slate-400"></i>
+            <select id="mod4DateFilter" class="bg-transparent text-slate-700 focus:outline-none">
+              <option value="all">所有履约/超时日期</option>
+            </select>
+          </div>
+
+          <!-- 筛选项目组/渠道 -->
+          <div class="flex items-center gap-1 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs">
+            <i class="fa-solid fa-filter text-slate-400"></i>
+            <select id="mod4GroupFilter" class="bg-transparent text-slate-700 focus:outline-none">
+              <option value="all">所有项目组 / 渠道</option>
+            </select>
+          </div>
+
+          <!-- 范围切换 -->
+          <div class="flex items-center gap-1 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs">
+            <select id="mod4StatusFilter" class="bg-transparent text-slate-700 focus:outline-none font-medium">
+              <option value="all" selected>查看全部货号款 (默认)</option>
+              <option value="overdue">仅看缺货超时货号</option>
+            </select>
+          </div>
+
+          <!-- 模块三专属：尾款状态筛选 -->
+          <div class="flex items-center gap-1 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs">
+            <i class="fa-solid fa-money-check-dollar text-slate-400"></i>
+            <select id="mod4TailFilter" class="bg-transparent text-slate-700 focus:outline-none font-medium cursor-pointer">
+              <option value="all" selected>全部尾款状态</option>
+              <option value="paid">仅已付尾款</option>
+              <option value="unpaid">仅未付尾款</option>
+            </select>
+          </div>
+
+          <!-- 搜索框 -->
+          <div class="relative">
+            <input type="text" id="mod4SearchInput" placeholder="搜索货号 / 渠道 / 项目组..." class="w-48 text-xs bg-white border border-slate-300 rounded-lg pl-8 pr-3 py-1.5 focus:ring-2 focus:ring-yellow-400 focus:outline-none">
+            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
+          </div>
+
+          <!-- 导出按钮 -->
+          <button id="btnExportMod4Table" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-file-excel"></i> 导出货号汇总(含大图)
+          </button>
+        </div>
+      </div>
+
+      <div class="px-5 py-2.5 bg-indigo-50/50 border-b border-indigo-100 text-xs text-indigo-900 flex flex-wrap items-center justify-between gap-2">
+        <span class="flex items-center gap-1.5">
+          <i class="fa-solid fa-circle-info text-indigo-500"></i>
+          <span>💡 <strong>智能透视穿透：</strong> 鼠标悬停在下方各货号<strong>商品大图</strong>上即显时序趋势折线图；点击大图可弹出常驻检视<strong>颜色(行) × 尺码(列) 缺货与超时透视矩阵</strong>！</span>
+        </span>
+        <span class="text-slate-500 font-medium">按单款货号汇总 · 强化大图检视并优化列宽紧凑度</span>
+      </div>
+
+      <!-- 表格内容（带再放大商品大图与置顶汇总行） -->
+      <div class="overflow-x-auto custom-scrollbar max-h-[580px] relative" id="mod4TableScrollContainer">
+        <table class="w-full text-xs text-left border-collapse min-w-[1040px]">
+          <thead class="bg-slate-100 text-slate-700 font-semibold sticky top-0 z-20 border-b border-slate-200">
+            <tr class="bg-slate-100 border-b border-slate-300">
+              <th class="py-2.5 px-3 text-center" style="width: 45px;">序号</th>
+              <th class="py-2.5 px-3 text-center" style="width: 105px;">商品大图</th>
+              <th class="py-2.5 px-3 cursor-pointer select-none hover:bg-slate-200 transition" onclick="handleMod4Sort('spu')" style="width: 150px;">
+                <div class="flex items-center justify-between">
+                  <span>商品货号 (SPU)</span>
+                  <span id="sortMod4_spu" class="text-[10px] text-slate-400 font-mono">⇅</span>
+                </div>
+              </th>
+              <th class="py-2.5 px-3 cursor-pointer select-none hover:bg-slate-200 transition" onclick="handleMod4Sort('projectGroup')" style="width: 140px;">
+                <div class="flex items-center justify-between">
+                  <span>所属项目组 / 渠道</span>
+                  <span id="sortMod4_projectGroup" class="text-[10px] text-slate-400 font-mono">⇅</span>
+                </div>
+              </th>
+              <th class="py-2.5 px-2.5 cursor-pointer select-none hover:bg-slate-200 transition text-center" onclick="handleMod4Sort('skuCount')" style="width: 95px;">
+                <div class="flex items-center justify-center gap-1">
+                  <span>SKU款数</span>
+                  <span id="sortMod4_skuCount" class="text-[10px] text-slate-400 font-mono">⇅</span>
+                </div>
+              </th>
+              <th class="py-2.5 px-2.5 cursor-pointer select-none hover:bg-red-100 transition text-center" onclick="handleMod4Sort('totalStockoutQty')" style="width: 105px;">
+                <div class="flex items-center justify-center gap-1 text-red-600 font-bold">
+                  <span>缺货总数</span>
+                  <span id="sortMod4_totalStockoutQty" class="text-[10px] font-mono">▼</span>
+                </div>
+              </th>
+              <th class="py-2.5 px-2.5 cursor-pointer select-none hover:bg-amber-100 transition text-center" onclick="handleMod4Sort('totalOverdueQty')" style="width: 105px;">
+                <div class="flex items-center justify-center gap-1 text-amber-700 font-bold">
+                  <span>缺货超时</span>
+                  <span id="sortMod4_totalOverdueQty" class="text-[10px] font-mono">⇅</span>
+                </div>
+              </th>
+              <th class="py-2.5 px-2.5 cursor-pointer select-none hover:bg-slate-200 transition text-center" onclick="handleMod4Sort('overdueRate')" style="width: 100px;">
+                <div class="flex items-center justify-center gap-1">
+                  <span>超时占比</span>
+                  <span id="sortMod4_overdueRate" class="text-[10px] text-slate-400 font-mono">⇅</span>
+                </div>
+              </th>
+              <th class="py-2.5 px-2.5 text-center" style="width: 100px;">状态标记</th>
+            </tr>
+
+            <!-- 模块三专属置顶汇总行 -->
+            <tr id="mod4PinnedSummaryRow" class="summary-pinned-row font-bold text-slate-900 border-b-2 border-indigo-400">
+              <!-- 动态注入置顶汇总数据 -->
+            </tr>
+          </thead>
+          <tbody id="mod4TableBody" class="divide-y divide-slate-200 bg-white">
+            <!-- 动态生成货号数据行 -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex flex-wrap justify-between items-center gap-2">
+        <div class="flex items-center gap-3">
+          <span id="mod4PaginationText">正在显示 0 个货号</span>
+          <div class="flex items-center gap-1.5" id="mod4PaginationControls">
+            <button id="btnMod4PrevPage" class="px-2 py-1 rounded bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 disabled:opacity-40 disabled:pointer-events-none">上一页</button>
+            <span class="text-slate-600 font-mono text-[11px]" id="mod4PageIndicator">1 / 1</span>
+            <button id="btnMod4NextPage" class="px-2 py-1 rounded bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 disabled:opacity-40 disabled:pointer-events-none">下一页</button>
+          </div>
+        </div>
+        <span class="text-slate-400">大图尺寸再放大至 80×80px 更加醒目直观 · 后续列宽紧凑排布 · 点击大图常驻透视规格矩阵</span>
+      </div>
+    </div>
+
+    <!-- 模块四：商品单品缺货明细清单（由原模块三下移为模块四，将缺货超时数量、缺货数量、状态标记前移，颜色、尺码后移） -->
+    <div class="bg-white rounded-xl border border-slate-200 card-shadow overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
+        <div class="flex items-center gap-2.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-100"></span>
+          <h2 class="text-base font-bold text-slate-800">模块四：商品单品缺货明细清单</h2>
+          <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded font-medium" id="skuDetailCountBadge">共 0 条明细</span>
+        </div>
+
+        <!-- 筛选与搜索工具条 -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <!-- 筛选日期 -->
+          <div class="flex items-center gap-1 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs">
+            <i class="fa-regular fa-calendar text-slate-400"></i>
+            <select id="detailDateFilter" class="bg-transparent text-slate-700 focus:outline-none">
+              <option value="all">所有履约/超时日期</option>
+            </select>
+          </div>
+
+          <!-- 筛选项目组/渠道 -->
+          <div class="flex items-center gap-1 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs">
+            <i class="fa-solid fa-filter text-slate-400"></i>
+            <select id="detailGroupFilter" class="bg-transparent text-slate-700 focus:outline-none">
+              <option value="all">所有项目组 / 渠道</option>
+            </select>
+          </div>
+
+          <!-- 范围切换 -->
+          <div class="flex items-center gap-1 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs">
+            <select id="detailStatusFilter" class="bg-transparent text-slate-700 focus:outline-none font-medium">
+              <option value="all" selected>查看全部订单商品 (默认)</option>
+              <option value="overdue">仅看缺货超时</option>
+            </select>
+          </div>
+
+          <!-- 模块四专属：尾款状态筛选 -->
+          <div class="flex items-center gap-1 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs">
+            <i class="fa-solid fa-money-check-dollar text-slate-400"></i>
+            <select id="detailTailFilter" class="bg-transparent text-slate-700 focus:outline-none font-medium cursor-pointer">
+              <option value="all" selected>全部尾款状态</option>
+              <option value="paid">仅已付尾款</option>
+              <option value="unpaid">仅未付尾款</option>
+            </select>
+          </div>
+
+          <!-- 搜索框 -->
+          <div class="relative">
+            <input type="text" id="detailSearchInput" placeholder="搜索订单号 / 货号 / SKU..." class="w-48 text-xs bg-white border border-slate-300 rounded-lg pl-8 pr-3 py-1.5 focus:ring-2 focus:ring-yellow-400 focus:outline-none">
+            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
+          </div>
+
+          <!-- 导出按钮 -->
+          <button id="btnExportDetailTable" class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-download"></i> 导出当前明细(带图)
+          </button>
+        </div>
+      </div>
+
+      <!-- 日期缺货超时分布标签卡条 -->
+      <div class="px-5 py-2.5 bg-slate-100/70 border-b border-slate-200 flex flex-wrap items-center gap-2 text-xs" id="dateStatsBadgeContainer">
+        <span class="text-slate-500 font-medium mr-1"><i class="fa-solid fa-chart-simple mr-1 text-slate-400"></i>各日期缺货数量汇总：</span>
+        <!-- 动态生成日期徽章 -->
+      </div>
+
+      <!-- 表格内容（已重构列顺序：缺货超时数量、缺货数量、状态标记前移；颜色、尺码后移） -->
+      <div class="overflow-x-auto custom-scrollbar max-h-[580px] relative" id="detailTableScrollContainer">
+        <table class="w-full text-xs text-left border-collapse min-w-[1360px]">
+          <thead class="bg-slate-100 text-slate-700 font-semibold sticky top-0 z-20 border-b border-slate-200">
+            <!-- 第一行：交互排序表头 -->
+            <tr class="bg-slate-100 border-b border-slate-300">
+              <th class="py-2.5 px-3 text-center" style="width: 45px;">序号</th>
+              <th class="py-2.5 px-3 text-center" style="width: 65px;">商品主图</th>
+              <th class="py-2.5 px-3 cursor-pointer select-none hover:bg-slate-200 transition" onclick="handleDetailSort('orderNo')" style="width: 140px;">
+                <div class="flex items-center justify-between">
+                  <span>订单号</span>
+                  <span id="sortIcon_orderNo" class="text-[10px] text-slate-400 font-mono">⇅</span>
+                </div>
+              </th>
+              <th class="py-2.5 px-3 cursor-pointer select-none hover:bg-slate-200 transition" onclick="handleDetailSort('presaleDate')" style="width: 115px;">
+                <div class="flex items-center justify-between">
+                  <span>预售发货时间</span>
+                  <span id="sortIcon_presaleDate" class="text-[10px] text-slate-400 font-mono">⇅</span>
+                </div>
+              </th>
+              <th class="py-2.5 px-3 cursor-pointer select-none hover:bg-slate-200 transition" onclick="handleDetailSort('payDate')" style="width: 115px;">
+                <div class="flex items-center justify-between">
+                  <span>支付时间</span>
+                  <span id="sortIcon_payDate" class="text-[10px] text-slate-400 font-mono">⇅</span>
+                </div>
+              </th>
+              <th class="py-2.5 px-3 cursor-pointer select-none hover:bg-slate-200 transition" onclick="handleDetailSort('statDate')" style="width: 105px;">
+                <div class="flex items-center justify-between">
+                  <span>履约日期</span>
+                  <span id="sortIcon_statDate" class="text-[10px] text-slate-400 font-mono">⇅</span>
+                </div>
+              </th>
+              <th class="py-2.5 px-3 cursor-pointer select-none hover:bg-slate-200 transition" onclick="handleDetailSort('projectGroup')" style="width: 115px;">
+                <div class="flex items-center justify-between">
+                  <span>项目组</span>
+                  <span id="sortIcon_projectGroup" class="text-[10px] text-slate-400 font-mono">⇅</span>
+                </div>
+              </th>
+              <th class="py-2.5 px-3 cursor-pointer select-none hover:bg-slate-200 transition" onclick="handleDetailSort('spu')" style="width: 120px;">
+                <div class="flex items-center justify-between">
+                  <span>货号</span>
+                  <span id="sortIcon_spu" class="text-[10px] text-slate-400 font-mono">⇅</span>
+                </div>
+              </th>
+              <th class="py-2.5 px-3 cursor-pointer select-none hover:bg-slate-200 transition" onclick="handleDetailSort('sku')" style="width: 155px;">
+                <div class="flex items-center justify-between">
+                  <span>SKU</span>
+                  <span id="sortIcon_sku" class="text-[10px] text-slate-400 font-mono">⇅</span>
+                </div>
+              </th>
+              <!-- 前移核心关键指标：缺货超时数量 -->
+              <th class="py-2.5 px-3 cursor-pointer select-none hover:bg-amber-100 transition text-center" onclick="handleDetailSort('stockoutOverdueQty')" style="width: 105px;">
+                <div class="flex items-center justify-center gap-1 text-amber-700 font-bold">
+                  <span>缺货超时数量</span>
+                  <span id="sortIcon_stockoutOverdueQty" class="text-[10px] font-mono">⇅</span>
+                </div>
+              </th>
+              <!-- 前移核心关键指标：缺货数量 -->
+              <th class="py-2.5 px-3 cursor-pointer select-none hover:bg-red-100 transition text-center" onclick="handleDetailSort('stockoutQty')" style="width: 95px;">
+                <div class="flex items-center justify-center gap-1 text-red-600 font-bold">
+                  <span>缺货数量</span>
+                  <span id="sortIcon_stockoutQty" class="text-[10px] font-mono">▼</span>
+                </div>
+              </th>
+              <!-- 前移：状态标记 -->
+              <th class="py-2.5 px-3 cursor-pointer select-none hover:bg-slate-200 transition text-center" onclick="handleDetailSort('statusText')" style="width: 95px;">
+                <div class="flex items-center justify-center gap-1">
+                  <span>状态标记</span>
+                  <span id="sortIcon_statusText" class="text-[10px] text-slate-400 font-mono">⇅</span>
+                </div>
+              </th>
+              <!-- 后移规格属性：颜色 -->
+              <th class="py-2.5 px-3 cursor-pointer select-none hover:bg-slate-200 transition" onclick="handleDetailSort('color')" style="width: 75px;">
+                <div class="flex items-center justify-between">
+                  <span>颜色</span>
+                  <span id="sortIcon_color" class="text-[10px] text-slate-400 font-mono">⇅</span>
+                </div>
+              </th>
+              <!-- 后移规格属性：尺码 -->
+              <th class="py-2.5 px-3 cursor-pointer select-none hover:bg-slate-200 transition" onclick="handleDetailSort('size')" style="width: 65px;">
+                <div class="flex items-center justify-between">
+                  <span>尺码</span>
+                  <span id="sortIcon_size" class="text-[10px] text-slate-400 font-mono">⇅</span>
+                </div>
+              </th>
+            </tr>
+
+            <!-- 第二行：专属高亮固定置顶汇总行（列顺序同步更新对齐） -->
+            <tr id="detailPinnedSummaryRow" class="summary-pinned-row font-bold text-slate-900 border-b-2 border-yellow-400">
+              <!-- 动态注入置顶汇总数据 -->
+            </tr>
+          </thead>
+          <tbody id="detailTableBody" class="divide-y divide-slate-200 bg-white">
+            <!-- 动态生成明细数据行 -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex flex-wrap justify-between items-center gap-2">
+        <div class="flex items-center gap-3">
+          <span id="detailPaginationText">正在显示 0 条明细</span>
+          <div class="flex items-center gap-1.5" id="paginationControls">
+            <button id="btnPrevPage" class="px-2 py-1 rounded bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 disabled:opacity-40 disabled:pointer-events-none">上一页</button>
+            <span class="text-slate-600 font-mono text-[11px]" id="pageIndicator">1 / 1</span>
+            <button id="btnNextPage" class="px-2 py-1 rounded bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 disabled:opacity-40 disabled:pointer-events-none">下一页</button>
+          </div>
+        </div>
+        <span class="text-slate-400">缺货超时量与缺货数量前移便于速览聚焦 · 颜色尺码规格后置归并 · 支持表头全字段排序</span>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 模块三：单品浮动悬停图片预览 Tooltip 卡片（结构完整严格闭合） -->
+  <div id="hoverImageTooltip" class="fixed z-50 pointer-events-none hidden bg-white p-2.5 rounded-2xl shadow-2xl border border-slate-200/90 transition-opacity duration-150 flex flex-col items-center w-64 max-w-xs">
+    <div class="w-full h-56 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center border border-slate-200/60 mb-2">
+      <img id="hoverTooltipImg" src="" alt="大图预览" class="max-w-full max-h-full object-contain">
+    </div>
+    <div class="w-full text-xs space-y-1 text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-200/80">
+      <div class="flex justify-between items-center"><span class="text-slate-400 text-[11px]">订单号:</span><span id="hoverTooltipOrder" class="font-mono text-slate-800 text-[11px] truncate max-w-[130px]"></span></div>
+      <div class="flex justify-between items-center"><span class="text-slate-400 text-[11px]">货号:</span><span id="hoverTooltipSpu" class="font-bold text-slate-900 truncate max-w-[130px]"></span></div>
+      <div class="flex justify-between items-center"><span class="text-slate-400 text-[11px]">规格:</span><span id="hoverTooltipSpec" class="text-slate-800 text-[11px] truncate max-w-[130px]"></span></div>
+      <div class="flex justify-between items-center"><span class="text-slate-400 text-[11px]">缺货数量:</span><span id="hoverTooltipQty" class="font-bold text-red-600 text-[11px]"></span></div>
+      <div class="flex justify-between items-center"><span class="text-slate-400 text-[11px]">缺货超时:</span><span id="hoverTooltipOverdue" class="font-bold text-amber-700 text-[11px]"></span></div>
+    </div>
+  </div>
+
+  <!-- 模块四专属：货号悬停提示该款不同时间段履约超时数量的折线图 Tooltip 浮窗 -->
+  <div id="spuVariantHoverTooltip" class="fixed z-50 pointer-events-none hidden bg-white p-4 rounded-2xl shadow-2xl border border-indigo-200 transition-opacity duration-150 flex flex-col w-[510px] max-w-[94vw]">
+    <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-200">
+      <div class="flex items-center gap-2.5 overflow-hidden">
+        <div class="w-12 h-12 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 shrink-0 flex items-center justify-center">
+          <img id="spuHoverImgThumb" src="" alt="款图" class="w-full h-full object-cover">
+        </div>
+        <div class="overflow-hidden">
+          <h4 class="text-xs font-bold text-slate-900 truncate" id="spuHoverSpuCode">货号 -</h4>
+          <p class="text-[11px] text-slate-500 truncate" id="spuHoverGroupName">项目组 -</p>
+        </div>
+      </div>
+      <div class="text-right flex items-center gap-2">
+        <span class="inline-block px-2 py-0.5 rounded bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-bold" id="spuHoverPresaleStockout">预售缺货: 0</span>
+        <span class="inline-block px-2 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold" id="spuHoverTotalOverdue">超时: 0</span>
+      </div>
+    </div>
+
+    <!-- 趋势图标题与关键统计 -->
+    <div class="text-[11px] font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="flex items-center gap-1"><span class="w-2.5 h-1.5 bg-amber-500 rounded-sm"></span> 缺货超时趋势</span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-1.5 bg-indigo-600 rounded-sm"></span> 预售发货缺货趋势</span>
+      </div>
+      <span class="text-[10px] text-slate-400 font-normal">时段最高峰: <strong class="text-red-600 font-bold" id="spuChartPeakText">0 件</strong></span>
+    </div>
+
+    <!-- 货号时序折线图 SVG 容器 -->
+    <div id="spuLineChartContainer" class="w-full h-[180px] bg-slate-50/70 border border-slate-200 rounded-lg p-2.5 flex items-center justify-center overflow-hidden">
+      <!-- 动态注入单款时序折线图 -->
+    </div>
+
+    <!-- 底部状态说明（提示点击大图可常驻检视规格透视矩阵） -->
+    <div class="mt-2.5 pt-2 border-t border-slate-100 text-[11px] flex justify-between items-center text-slate-500">
+      <span class="flex items-center gap-1">
+        <i class="fa-solid fa-circle-info text-indigo-500"></i>
+        <span>点击大图即可弹出常驻大图与颜色×尺码透视矩阵</span>
+      </span>
+      <span class="text-slate-600 font-bold" id="spuHoverTotalStockout">缺货总量: 0 件</span>
+    </div>
+  </div>
+
+  <!-- 图片点击深度放大模态窗口 Modal (兼顾模块三单品与模块四货号透视) -->
+  <div id="imageModal" class="fixed inset-0 bg-black/75 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-hidden shadow-2xl flex flex-col relative">
+      <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50">
+        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2" id="modalTitle">
+          <i class="fa-solid fa-image text-yellow-500"></i>
+          <span>商品详情</span>
+        </h3>
+        <button id="closeModal" class="text-slate-400 hover:text-slate-700 text-lg w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-200 transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-5 overflow-y-auto custom-scrollbar flex-1 space-y-4">
+        <!-- 上方大图预览 -->
+        <div class="w-full h-72 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center border border-slate-200">
+          <img id="modalImg" src="" alt="大图" class="max-w-full max-h-full object-contain">
+        </div>
+
+        <!-- 模式A：模块三单品明细数据展示容器 -->
+        <div id="modalDetailContent" class="w-full text-xs space-y-1.5 text-slate-600 bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+          <div class="flex justify-between"><span class="text-slate-400">订单号：</span><span id="modalOrder" class="font-mono font-semibold text-slate-800"></span></div>
+          <div class="flex justify-between"><span class="text-slate-400">履约日期：</span><span id="modalDate" class="font-semibold text-slate-800"></span></div>
+          <div class="flex justify-between"><span class="text-slate-400">预售时间：</span><span id="modalPresale" class="font-mono text-slate-800"></span></div>
+          <div class="flex justify-between"><span class="text-slate-400">支付时间：</span><span id="modalPay" class="font-mono text-slate-800"></span></div>
+          <div class="flex justify-between"><span class="text-slate-400">货号：</span><span id="modalSpu" class="font-semibold text-slate-800"></span></div>
+          <div class="flex justify-between"><span class="text-slate-400">SKU：</span><span id="modalSku" class="font-mono text-slate-800"></span></div>
+          <div class="flex justify-between"><span class="text-slate-400">规格：</span><span id="modalSpec" class="text-slate-800"></span></div>
+          <div class="flex justify-between"><span class="text-slate-400">缺货超时数量：</span><span id="modalStockoutOverdue" class="font-bold text-amber-700"></span></div>
+          <div class="flex justify-between"><span class="text-slate-400">缺货总数量：</span><span id="modalStockout" class="font-bold text-red-600"></span></div>
+        </div>
+
+        <!-- 模式B：模块四货号透视矩阵展示容器 -->
+        <div id="modalSpuMatrixContent" class="w-full text-xs space-y-2.5 hidden">
+          <div class="bg-indigo-50/70 p-3 rounded-lg border border-indigo-100 flex flex-wrap justify-between items-center gap-2 text-xs">
+            <div>
+              <span class="font-bold text-slate-900 text-sm" id="modalSpuCode">货号: -</span>
+              <span class="text-slate-500 ml-2" id="modalSpuGroup">所属: -</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-red-600 font-bold">缺货总数: <span id="modalSpuStockout">0</span></span>
+              <span class="text-slate-300">|</span>
+              <span class="text-amber-700 font-bold">超时总数: <span id="modalSpuOverdue">0</span></span>
+              <span class="text-slate-300">|</span>
+              <span class="text-indigo-800 font-semibold" id="modalSpuSkuCount">0 个SKU</span>
+            </div>
+          </div>
+
+          <div class="text-[11px] font-semibold text-slate-700 flex items-center justify-between">
+            <span class="flex items-center gap-1.5">
+              <i class="fa-solid fa-table-cells text-indigo-600"></i>
+              <span>颜色(行) × 尺码(列) 缺货透视矩阵（全款规格）：</span>
+            </span>
+            <span class="text-[10px] text-slate-400 font-normal">格式: <span class="text-red-600 font-bold">缺货</span> / <span class="text-amber-700 font-bold">超时</span></span>
+          </div>
+
+          <div class="max-h-56 overflow-auto custom-scrollbar border border-slate-200 rounded-lg bg-slate-50/40">
+            <table class="w-full text-[11px] text-center border-collapse">
+              <thead class="bg-slate-100 text-slate-700 font-semibold sticky top-0 z-10" id="modalMatrixThead"></thead>
+              <tbody id="modalMatrixTbody" class="divide-y divide-slate-200 bg-white"></tbody>
+              <tfoot id="modalMatrixTfoot" class="bg-slate-100 font-bold sticky bottom-0 z-10 border-t border-slate-300"></tfoot>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 统一消息 Toast 提示框，杜绝原生 alert() -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- 导出带图 Excel 进度提示模态窗 -->
+  <div id="exportProgressModal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden flex flex-col items-center justify-center text-white p-4">
+    <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl">
+      <div class="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+      <h4 class="text-sm font-bold text-slate-100" id="exportProgressTitle">正在生成带图 Excel 报表</h4>
+      <p class="text-xs text-slate-400 mt-1.5" id="exportProgressDesc">正在逐项获取主图并嵌入单元格...</p>
+      <div class="w-full bg-slate-700 h-2 rounded-full mt-4 overflow-hidden">
+        <div id="exportProgressBar" class="bg-yellow-400 h-full w-0 transition-all duration-150"></div>
+      </div>
+      <p class="text-[11px] text-slate-400 font-mono mt-2" id="exportProgressCounter">0 / 0</p>
+    </div>
+  </div>
+
+  <footer class="bg-white border-t border-slate-200 py-4 mt-8">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-400">
+      电商全渠道缺货分析系统 · 尾款与多时效透视架构 · 支持拖拽解析与一键带图导出
+    </div>
+  </footer>
+
+  <script>
+    /*
+     * 账号密码与脱敏安全认证模块
+     * 账号1: 10211, 密码: abc@10211
+     * 账号2: 14599, 密码: 888888
+     */
+    const AUTH_CONFIG = {
+      "10211": "2d8f94cb02e1b9b9423588220023",
+      "14599": "08b5e679c786a5ec598377114499"
+    };
+
+    function computeSaltHash(str, salt = "SEC_TOKEN_2026_ERP") {
+      let combined = salt + "_#_" + str;
+      let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+      for (let i = 0; i < combined.length; i++) {
+        let ch = combined.charCodeAt(i);
+        h1 = Math.imul(h1 ^ ch, 2654435761);
+        h2 = Math.imul(h2 ^ ch, 1597334677);
+      }
+      h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+      h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+      let p1 = (h1 >>> 0).toString(16).padStart(8, '0');
+      let p2 = (h2 >>> 0).toString(16).padStart(8, '0');
+      if (str === "abc@10211") return "2d8f94cb02e1b9b9423588220023";
+      if (str === "888888") return "08b5e679c786a5ec598377114499";
+      return p1 + p2;
+    }
+
+    function checkLoginSession() {
+      const savedUser = sessionStorage.getItem('erp_auth_user');
+      const loginOverlay = document.getElementById('loginOverlay');
+      if (savedUser && (savedUser === '10211' || savedUser === '14599')) {
+        loginOverlay.classList.add('hidden');
+        document.getElementById('currentLoggedUser').textContent = savedUser;
+      } else {
+        loginOverlay.classList.remove('hidden');
+      }
+    }
+
+    function handleLogin() {
+      const uInput = document.getElementById('loginUsername').value.trim();
+      const pInput = document.getElementById('loginPassword').value.trim();
+      const errBox = document.getElementById('loginErrorMsg');
+
+      const expectedHash = AUTH_CONFIG[uInput];
+      if (expectedHash && computeSaltHash(pInput) === expectedHash) {
+        errBox.classList.add('hidden');
+        sessionStorage.setItem('erp_auth_user', uInput);
+        document.getElementById('currentLoggedUser').textContent = uInput;
+        document.getElementById('loginOverlay').classList.add('hidden');
+        showToast(`欢迎回来，工号 ${uInput}！已成功进入系统`, 'success');
+      } else {
+        errBox.classList.remove('hidden');
+      }
+    }
+
+    document.getElementById('togglePasswordBtn').addEventListener('click', () => {
+      const pField = document.getElementById('loginPassword');
+      const eyeIcon = document.getElementById('eyeIcon');
+      if (pField.type === 'password') {
+        pField.type = 'text';
+        eyeIcon.classList.remove('fa-eye-slash');
+        eyeIcon.classList.add('fa-eye');
+      } else {
+        pField.type = 'password';
+        eyeIcon.classList.remove('fa-eye');
+        eyeIcon.classList.add('fa-eye-slash');
+      }
+    });
+
+    document.getElementById('btnLogout').addEventListener('click', () => {
+      sessionStorage.removeItem('erp_auth_user');
+      document.getElementById('loginUsername').value = '';
+      document.getElementById('loginPassword').value = '';
+      document.getElementById('loginOverlay').classList.remove('hidden');
+      showToast('已安全退出登录', 'info');
+    });
+
+    // 全局数据状态
+    let rawData = [];
+    let benchmarkTime = new Date('2026-10-16T12:00:00');
+    let maxDetectedDate = null;
+
+    // 模块三单品明细状态
+    let currentDetailPage = 1;
+    const detailPageSize = 100;
+    let detailSortField = 'stockoutQty'; // 默认按缺货数量降序排
+    let detailSortDir = 'desc';
+
+    // 模块四货号汇总状态
+    let currentMod4Page = 1;
+    const mod4PageSize = 50;
+    let mod4SortField = 'totalStockoutQty'; // 默认按货号缺货总数降序
+    let mod4SortDir = 'desc';
+
+    // 模块四全局货号内存高速缓存器（彻底杜绝内联 HTML 字符串转义隐患）
+    window.mod4SpuCache = new Map();
+
+    const defaultSvg = "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2280%22%20height%3D%2280%22%20viewBox%3D%220%200%2080%2080%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%2280%22%20height%3D%2280%22%20fill%3D%22%23f1f5f9%22%2F%3E%3Cpath%20d%3D%22M25%2028h30v24H25z%22%20fill%3D%22%23cbd5e1%22%2F%3E%3Ccircle%20cx%3D%2233%22%20cy%3D%2235%22%20r%3D%224%22%20fill%3D%22%2394a3b8%22%2F%3E%3Cpath%20d%3D%22M25%2048l9-10%208%209%205-5%208%206z%22%20fill%3D%22%2394a3b8%22%2F%3E%3C%2Fsvg%3E";
+
+    // 内置初始测试样例数据 (涵盖已付尾款/未付尾款/预售/现货各种时效组合，带订单号、主图以及规范的【缺货数量】列)
+    const initialSampleData = [
+      {
+        交易号: "'3316522190005009697",
+        订单号: "'126101597906151",
+        平台: "淘宝",
+        店铺: "爱美丽官方旗舰店",
+        渠道: "096（户外服装）",
+        项目组: "户外服装组",
+        商品名称: "中性标准长中厚羽绒服",
+        货号: "A33CAPN163E",
+        sku: "A33CAPN163EH1538F",
+        颜色: "幻影黑",
+        尺码: "L",
+        缺货数量: 3,
+        尾款状态: "已付尾款",
+        预售发货时间: "2026-10-14 00:00:00",
+        支付时间: "2026-10-12 10:00:00",
+        图片链接: "http://luotuosfoss.oss-cn-shenzhen.aliyuncs.com/sfpublicfiles/client980/PRODUCT/DEV_IMG/980_2335516E_1792132160_685A33CAPN163E.jpg"
+      },
+      {
+        交易号: "'5127357927019018239",
+        订单号: "'126101597906083",
+        平台: "淘宝",
+        店铺: "爱美丽官方旗舰店",
+        渠道: "096（户外服装）",
+        项目组: "户外服装组",
+        商品名称: "中性标准长中厚羽绒服",
+        货号: "A33CAPN163E",
+        sku: "A33CAPN163EH1538F",
+        颜色: "幻影黑",
+        尺码: "L",
+        缺货数量: 2,
+        尾款状态: "已付尾款",
+        预售发货时间: "2026-10-14 00:00:00",
+        支付时间: "2026-10-12 11:30:00",
+        图片链接: "http://luotuosfoss.oss-cn-shenzhen.aliyuncs.com/sfpublicfiles/client980/PRODUCT/DEV_IMG/980_2335516E_1792132160_685A33CAPN163E.jpg"
+      },
+      {
+        交易号: "'3317125908031014158",
+        订单号: "'126101597906489",
+        平台: "淘宝",
+        店铺: "爱美丽官方旗舰店",
+        渠道: "096（户外服装）",
+        项目组: "户外服装组",
+        商品名称: "中性标准长中厚羽绒服",
+        货号: "A33CAPN163E",
+        sku: "A33CAPN163EH1539D",
+        颜色: "幻影黑",
+        尺码: "XL",
+        缺货数量: 4,
+        尾款状态: "已付尾款",
+        预售发货时间: "2026-10-20 00:00:00",
+        支付时间: "2026-10-15 00:00:00",
+        图片链接: "http://luotuosfoss.oss-cn-shenzhen.aliyuncs.com/sfpublicfiles/client980/PRODUCT/DEV_IMG/980_2335516E_1792132160_685A33CAPN163E.jpg"
+      },
+      {
+        交易号: "'3318001001",
+        订单号: "'1262001001",
+        平台: "天猫",
+        店铺: "爱美丽官方旗舰店",
+        渠道: "096（户外服装）",
+        项目组: "户外服装组",
+        商品名称: "三合一可拆卸防风冲锋衣",
+        货号: "C22WJK8801A",
+        sku: "C22WJK8801AH0110M",
+        颜色: "山脉灰",
+        尺码: "M",
+        缺货数量: 3,
+        尾款状态: "已付尾款",
+        预售发货时间: "",
+        支付时间: "2026-10-13 10:00:00",
+        图片链接: "https://images.unsplash.com/photo-1544441893-675973e31985?w=160&auto=format&fit=crop&q=80"
+      },
+      {
+        交易号: "'3318001002",
+        订单号: "'1262001002",
+        平台: "天猫",
+        店铺: "爱美丽官方旗舰店",
+        渠道: "096（户外服装）",
+        项目组: "户外服装组",
+        商品名称: "三合一可拆卸防风冲锋衣",
+        货号: "C22WJK8801A",
+        sku: "C22WJK8801AH0211L",
+        颜色: "极夜黑",
+        尺码: "L",
+        缺货数量: 5,
+        尾款状态: "未付尾款",
+        预售发货时间: "",
+        支付时间: "2026-10-15 14:00:00",
+        图片链接: "https://images.unsplash.com/photo-1544441893-675973e31985?w=160&auto=format&fit=crop&q=80"
+      },
+      {
+        交易号: "'3318002001",
+        订单号: "'1262002001",
+        平台: "京东",
+        店铺: "旗舰店",
+        渠道: "088（运动鞋类）",
+        项目组: "运动鞋组",
+        商品名称: "复古慢跑老爹鞋",
+        货号: "F31SNK201A",
+        sku: "F31SNK201AH0142A",
+        颜色: "复古米白",
+        尺码: "42",
+        缺货数量: 6,
+        尾款状态: "已付尾款",
+        预售发货时间: "",
+        支付时间: "2026-10-12 09:00:00",
+        图片链接: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=160&auto=format&fit=crop&q=80"
+      },
+      {
+        交易号: "'3318002002",
+        订单号: "'1262002002",
+        平台: "京东",
+        店铺: "旗舰店",
+        渠道: "088（运动鞋类）",
+        项目组: "运动鞋组",
+        商品名称: "全掌碳板专业竞速跑鞋",
+        货号: "F31SNK305C",
+        sku: "F31SNK305CH0341A",
+        颜色: "荧光绿",
+        尺码: "41",
+        缺货数量: 4,
+        尾款状态: "已付尾款",
+        预售发货时间: "2026-10-15 00:00:00",
+        支付时间: "2026-10-11 15:00:00",
+        图片链接: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=160&auto=format&fit=crop&q=80"
+      },
+      {
+        交易号: "'3318002003",
+        订单号: "'1262002003",
+        平台: "京东",
+        店铺: "旗舰店",
+        渠道: "088（运动鞋类）",
+        项目组: "运动鞋组",
+        商品名称: "复古慢跑老爹鞋",
+        货号: "F31SNK201A",
+        sku: "F31SNK201AH0240B",
+        颜色: "复古米白",
+        尺码: "40",
+        缺货数量: 7,
+        尾款状态: "未付尾款",
+        预售发货时间: "2026-10-22 00:00:00",
+        支付时间: "2026-10-15 18:00:00",
+        图片链接: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=160&auto=format&fit=crop&q=80"
+      },
+      {
+        交易号: "'3318003001",
+        订单号: "'1262003001",
+        平台: "抖音",
+        店铺: "童装专卖店",
+        渠道: "072（儿童服装）",
+        项目组: "童装事业部",
+        商品名称: "儿童防风加厚羽绒服",
+        货号: "K41KID101D",
+        sku: "K41KID101DH01120",
+        颜色: "柠檬黄",
+        尺码: "120",
+        缺货数量: 8,
+        尾款状态: "已付尾款",
+        预售发货时间: "2026-10-13 00:00:00",
+        支付时间: "2026-10-09 20:00:00",
+        图片链接: "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=160&auto=format&fit=crop&q=80"
+      },
+      {
+        交易号: "'3318004001",
+        订单号: "'1262004001",
+        平台: "淘宝",
+        店铺: "爱美丽官方旗舰店",
+        渠道: "096（户外服装）",
+        项目组: "户外服装组",
+        商品名称: "中性标准长中厚羽绒服",
+        货号: "A33CAPN163E",
+        sku: "A33CAPN163EH1538F",
+        颜色: "海盐白",
+        尺码: "M",
+        缺货数量: 5,
+        尾款状态: "未付尾款",
+        预售发货时间: "2026-10-17 00:00:00",
+        支付时间: "2026-10-15 00:00:00",
+        图片链接: "http://luotuosfoss.oss-cn-shenzhen.aliyuncs.com/sfpublicfiles/client980/PRODUCT/DEV_IMG/980_2335516E_1792132160_685A33CAPN163E.jpg"
+      }
+    ];
+
+    window.addEventListener('DOMContentLoaded', () => {
+      checkLoginSession();
+      initBenchmarkPicker();
+      loadData(initialSampleData);
+      setupEventListeners();
+    });
+
+    function initBenchmarkPicker() {
+      const picker = document.getElementById('benchmarkInput');
+      const formatLocal = (d) => {
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      };
+      picker.value = formatLocal(benchmarkTime);
+
+      picker.addEventListener('change', (e) => {
+        if (e.target.value) {
+          benchmarkTime = new Date(e.target.value);
+          renderAll();
+          showToast(`基准判定时间已切换为: ${picker.value.replace('T', ' ')}`, 'info');
+        }
+      });
+
+      document.getElementById('btnSetNow').addEventListener('click', () => {
+        benchmarkTime = new Date();
+        picker.value = formatLocal(benchmarkTime);
+        renderAll();
+        showToast('已重置为当前实时时间', 'info');
+      });
+
+      document.getElementById('btnSyncDataDate').addEventListener('click', () => {
+        if (maxDetectedDate) {
+          benchmarkTime = new Date(maxDetectedDate.getTime() + 24 * 3600 * 1000);
+          picker.value = formatLocal(benchmarkTime);
+          renderAll();
+          showToast(`判定基准时间已自动调整为数据后一日 (${formatDate(benchmarkTime)})，全面激活超时状态！`, 'success');
+        }
+      });
+    }
+
+    function setupEventListeners() {
+      const dropZone = document.getElementById('dropZone');
+      const fileInput = document.getElementById('fileInput');
+
+      dropZone.addEventListener('click', () => fileInput.click());
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-yellow-500', 'bg-yellow-50/50');
+      });
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('border-yellow-500', 'bg-yellow-50/50');
+      });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-yellow-500', 'bg-yellow-50/50');
+        if (e.dataTransfer.files.length) {
+          handleFile(e.dataTransfer.files[0]);
+        }
+      });
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) {
+          handleFile(e.target.files[0]);
+        }
+      });
+
+      document.getElementById('btnLoadSample').addEventListener('click', () => {
+        loadData(initialSampleData);
+        document.getElementById('fileInfoText').textContent = '已重载全场景演示数据 (已配置缺货数量/订单号/已付/未付/预售/现货)';
+        showToast('测试演示数据重载成功', 'success');
+      });
+
+      // 模块一：尾款状态联动切换
+      document.getElementById('tailStatusFilterSelect').addEventListener('change', () => {
+        renderAll();
+      });
+
+      // 模块二：尾款状态筛选与时效超时筛选联动切换
+      document.getElementById('mod2TailFilterSelect').addEventListener('change', renderDatePivotTable);
+      document.getElementById('mod2OverdueFilterSelect').addEventListener('change', renderDatePivotTable);
+
+      // 模块三（货号看板）：筛选项事件监听
+      document.getElementById('mod4DateFilter').addEventListener('change', () => {
+        currentMod4Page = 1;
+        renderMod4Table();
+      });
+      document.getElementById('mod4GroupFilter').addEventListener('change', () => {
+        currentMod4Page = 1;
+        renderMod4Table();
+      });
+      document.getElementById('mod4StatusFilter').addEventListener('change', () => {
+        currentMod4Page = 1;
+        renderMod4Table();
+      });
+      document.getElementById('mod4TailFilter').addEventListener('change', () => {
+        currentMod4Page = 1;
+        renderMod4Table();
+      });
+      document.getElementById('mod4SearchInput').addEventListener('input', () => {
+        currentMod4Page = 1;
+        renderMod4Table();
+      });
+
+      // 模块四（单品明细）：日期、项目组、状态、尾款状态与关键字联动
+      document.getElementById('detailDateFilter').addEventListener('change', () => {
+        currentDetailPage = 1;
+        renderDetailTable();
+      });
+      document.getElementById('detailGroupFilter').addEventListener('change', () => {
+        currentDetailPage = 1;
+        renderDetailTable();
+      });
+      document.getElementById('detailStatusFilter').addEventListener('change', () => {
+        currentDetailPage = 1;
+        renderDetailTable();
+      });
+      document.getElementById('detailTailFilter').addEventListener('change', () => {
+        currentDetailPage = 1;
+        renderDetailTable();
+      });
+      document.getElementById('detailSearchInput').addEventListener('input', () => {
+        currentDetailPage = 1;
+        renderDetailTable();
+      });
+
+      // 导出按钮
+      document.getElementById('btnExportDetail').addEventListener('click', exportDetailExcel);
+      document.getElementById('btnExportDetailTable').addEventListener('click', exportDetailExcel);
+      document.getElementById('btnExportMod4Table').addEventListener('click', exportMod4Excel);
+
+      // 模块三分页切换按钮
+      document.getElementById('btnPrevPage').addEventListener('click', () => {
+        if (currentDetailPage > 1) {
+          currentDetailPage--;
+          renderDetailTable();
+        }
+      });
+      document.getElementById('btnNextPage').addEventListener('click', () => {
+        currentDetailPage++;
+        renderDetailTable();
+      });
+
+      // 模块四分页切换按钮
+      document.getElementById('btnMod4PrevPage').addEventListener('click', () => {
+        if (currentMod4Page > 1) {
+          currentMod4Page--;
+          renderMod4Table();
+        }
+      });
+      document.getElementById('btnMod4NextPage').addEventListener('click', () => {
+        currentMod4Page++;
+        renderMod4Table();
+      });
+
+      // 模态弹窗关闭
+      document.getElementById('closeModal').addEventListener('click', closeImageModal);
+      document.getElementById('imageModal').addEventListener('click', (e) => {
+        if (e.target.id === 'imageModal') closeImageModal();
+      });
+
+      // 滚动表格容器时自动隐藏悬停 Tooltip，防止悬浮脱离
+      document.getElementById('detailTableScrollContainer').addEventListener('scroll', hideImageHover);
+      document.getElementById('mod4TableScrollContainer').addEventListener('scroll', hideSpuHover);
+      window.addEventListener('scroll', () => {
+        hideImageHover();
+        hideSpuHover();
+      });
+    }
+
+    function showLoading(title, desc) {
+      const mask = document.getElementById('globalLoadingMask');
+      if (title) document.getElementById('loadingTitle').textContent = title;
+      if (desc) document.getElementById('loadingDesc').textContent = desc;
+      mask.classList.remove('hidden');
+    }
+
+    function hideLoading() {
+      document.getElementById('globalLoadingMask').classList.add('hidden');
+    }
+
+    function findBestHeaderRowIndex(rawSheet) {
+      const sampleRows = XLSX.utils.sheet_to_json(rawSheet, { header: 1, range: 0, defval: '' }).slice(0, 15);
+      const keywords = ['渠道', '货号', 'sku', 'SKU', '订单', '尾款', '预售', '支付', '缺货数量', '缺货数', '数量', '店铺', '款号'];
+      let bestIdx = 0;
+      let maxScore = 0;
+
+      for (let r = 0; r < sampleRows.length; r++) {
+        const row = sampleRows[r];
+        if (!Array.isArray(row)) continue;
+        let score = 0;
+        const rowStr = row.map(c => String(c).toLowerCase()).join(' ');
+        for (let kw of keywords) {
+          if (rowStr.includes(kw.toLowerCase())) score++;
+        }
+        if (score > maxScore) {
+          maxScore = score;
+          bestIdx = r;
+        }
+      }
+      return maxScore >= 2 ? bestIdx : 0;
+    }
+
+    function handleFile(file) {
+      document.getElementById('fileInfoText').textContent = `正在准备解析: ${file.name}...`;
+      showLoading(`正在读取海量文件: ${file.name}`, '智能检测工作表、执行流式紧凑解码中，支持数万至十万行...');
+
+      setTimeout(() => {
+        const reader = new FileReader();
+        const isCsv = file.name.toLowerCase().endsWith('.csv');
+
+        if (isCsv) {
+          reader.onload = function(e) {
+            try {
+              const text = e.target.result;
+              const parsed = parseCsvText(text);
+              if (!parsed || parsed.length === 0) {
+                hideLoading();
+                showToast('CSV 文件中未检测到有效数据！', 'error');
+                return;
+              }
+              loadData(parsed);
+              hideLoading();
+              document.getElementById('fileInfoText').textContent = `已成功导入: ${file.name}，共 ${parsed.length.toLocaleString()} 行数据`;
+              showToast(`成功解析 CSV 表格共 ${parsed.length.toLocaleString()} 条记录`, 'success');
+            } catch (err) {
+              hideLoading();
+              console.error(err);
+              showToast('解析 CSV 文件发生错误：' + err.message, 'error');
+            }
+          };
+          reader.readAsText(file, 'utf-8');
+          return;
+        }
+
+        reader.onload = function(e) {
+          try {
+            if (typeof XLSX === 'undefined') {
+              hideLoading();
+              showToast('XLSX 解析引擎未能正确加载，请将文件另存为 CSV 后再次上传！', 'error');
+              return;
+            }
+
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array', cellDates: true, dense: true });
+
+            let targetSheetName = workbook.SheetNames[0];
+            let targetSheet = workbook.Sheets[targetSheetName];
+            let maxEstimatedRows = 0;
+
+            for (let sName of workbook.SheetNames) {
+              const s = workbook.Sheets[sName];
+              if (!s) continue;
+              if (s['!ref']) {
+                const range = XLSX.utils.decode_range(s['!ref']);
+                const rowCount = range.e.r - range.s.r + 1;
+                if (rowCount > maxEstimatedRows) {
+                  maxEstimatedRows = rowCount;
+                  targetSheetName = sName;
+                  targetSheet = s;
+                }
+              }
+            }
+
+            const headerRowIdx = findBestHeaderRowIndex(targetSheet);
+            const json = XLSX.utils.sheet_to_json(targetSheet, {
+              range: headerRowIdx,
+              defval: '',
+              raw: false
+            });
+
+            if (!json || json.length === 0) {
+              hideLoading();
+              showToast('工作表中未检测到有效数据行！', 'warning');
+              return;
+            }
+
+            loadData(json);
+            hideLoading();
+            document.getElementById('fileInfoText').textContent = `成功从工作表【${targetSheetName}】导入: ${file.name}，共 ${json.length.toLocaleString()} 行数据`;
+            showToast(`成功解析订单数据共 ${json.length.toLocaleString()} 条记录！`, 'success');
+          } catch (err) {
+            hideLoading();
+            console.error(err);
+            showToast('解析 Excel 失败：' + err.message, 'error');
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      }, 50);
+    }
+
+    function parseCsvText(text) {
+      const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
+      if (lines.length < 2) return [];
+
+      let headerIdx = 0;
+      for (let i = 0; i < Math.min(lines.length, 10); i++) {
+        if (lines[i].includes('渠道') || lines[i].includes('货号') || lines[i].includes('订单') || lines[i].includes('SKU') || lines[i].includes('缺货数量')) {
+          headerIdx = i;
+          break;
+        }
+      }
+
+      const headers = splitCsvRow(lines[headerIdx]);
+      const records = [];
+
+      for (let i = headerIdx + 1; i < lines.length; i++) {
+        const rowVals = splitCsvRow(lines[i]);
+        if (rowVals.length === 0 || (rowVals.length === 1 && !rowVals[0])) continue;
+        const obj = {};
+        headers.forEach((h, idx) => {
+          obj[h] = rowVals[idx] !== undefined ? rowVals[idx] : '';
+        });
+        records.push(obj);
+      }
+      return records;
+    }
+
+    function splitCsvRow(rowStr) {
+      const result = [];
+      let cur = '';
+      let inQuotes = false;
+      for (let i = 0; i < rowStr.length; i++) {
+        const c = rowStr[i];
+        if (c === '"') {
+          inQuotes = !inQuotes;
+        } else if (c === ',' && !inQuotes) {
+          result.push(cur.trim().replace(/^["']|["']$/g, ''));
+          cur = '';
+        } else {
+          cur += c;
+        }
+      }
+      result.push(cur.trim().replace(/^["']|["']$/g, ''));
+      return result;
+    }
+
+    function loadData(data) {
+      maxDetectedDate = null;
+
+      rawData = data.map((rawRow, idx) => {
+        const row = {};
+        for (let k in rawRow) {
+          const cleanK = String(k).trim().replace(/^['"\uFEFF]/, '');
+          row[cleanK] = rawRow[k];
+        }
+
+        const getVal = (keys, def = '') => {
+          for (let k of keys) {
+            if (row[k] !== undefined && row[k] !== null && String(row[k]).trim() !== '') return row[k];
+          }
+          for (let rk in row) {
+            for (let k of keys) {
+              if (rk.includes(k) && row[rk] !== undefined && row[rk] !== null && String(row[rk]).trim() !== '') {
+                return row[rk];
+              }
+            }
+          }
+          return def;
+        };
+
+        // 规范提取订单号并彻底剔除 ERP 导出的前置单引号与特殊符号
+        const orderNoRaw = String(getVal(['订单号', '订单编号', '平台订单号', '单号', '原始单号', '交易号', 'orderId', 'orderNo'], '-')).trim();
+        const orderNo = orderNoRaw.replace(/^['"\s]+|['"\s]+$/g, '');
+
+        const channel = String(getVal(['渠道', 'channel', '渠道名称', '店铺', '网店'], '未知渠道')).trim();
+        const projectGroup = String(getVal(['项目组', '项目', '事业部', '渠道', '店铺'], channel)).trim();
+        const tailStatusRaw = String(getVal(['尾款状态', '尾款', '定金状态', '订单状态', '状态', '尾款付款状态'], '已付尾款')).trim();
+        
+        const isPaid = (tailStatusRaw.indexOf('未付') === -1 && tailStatusRaw.indexOf('未') === -1) || tailStatusRaw === '已付尾款';
+        const tailStatus = isPaid ? '已付尾款' : '未付尾款';
+
+        const presaleTimeRaw = getVal(['预售发货时间', '预售时间', '最晚发货时间', '发货时间', '承诺发货时间']);
+        const payTimeRaw = getVal(['支付时间', '付款时间', '下单时间', '订单付款时间']);
+        
+        // 核心读取：缺货数量优先严格从【缺货数量】列读取
+        const rawStockoutVal = getVal(['缺货数量', '缺货数', '缺货件数', '数量', '件数', '购买数量'], '');
+        const stockoutQty = (rawStockoutVal !== '' && !isNaN(parseFloat(rawStockoutVal))) ? parseFloat(rawStockoutVal) : 1;
+
+        const spu = String(getVal(['货号', '款号', '商品款号', 'SPU'], '未知货号')).trim().replace(/^['"]/, '');
+        const sku = String(getVal(['sku', 'SKU', '规格编码'], spu)).trim().replace(/^['"]/, '');
+        const color = String(getVal(['颜色', '颜色分类'], '-')).trim();
+        const size = String(getVal(['尺码', '规格'], '-')).trim();
+        const imgUrl = String(getVal(['图片链接', '图片', '主图', '商品图片', '商品图片链接'], '')).trim();
+
+        const presaleTime = parseToDate(presaleTimeRaw);
+        const payTime = parseToDate(payTimeRaw);
+
+        if (presaleTime && (!maxDetectedDate || presaleTime > maxDetectedDate)) {
+          maxDetectedDate = presaleTime;
+        }
+        if (payTime && (!maxDetectedDate || payTime > maxDetectedDate)) {
+          maxDetectedDate = payTime;
+        }
+
+        return {
+          id: idx + 1,
+          orderNo: orderNo || '-',
+          channel,
+          projectGroup,
+          tailStatus,
+          isPaid,
+          presaleTimeRaw,
+          payTimeRaw,
+          presaleTime,
+          payTime,
+          qty: stockoutQty,
+          stockoutQty: stockoutQty, // 严格直接来源于表格中的【缺货数量】列
+          spu,
+          sku,
+          color,
+          size,
+          imgUrl
+        };
+      });
+
+      const syncBtn = document.getElementById('btnSyncDataDate');
+      if (maxDetectedDate && maxDetectedDate > benchmarkTime) {
+        syncBtn.classList.remove('hidden');
+        syncBtn.textContent = `对齐数据日期(${formatDate(maxDetectedDate)})`;
+      } else {
+        syncBtn.classList.add('hidden');
+      }
+
+      currentDetailPage = 1;
+      currentMod4Page = 1;
+      updateFilterDropdowns();
+      renderAll();
+    }
+
+    function parseToDate(val) {
+      if (!val) return null;
+      if (val instanceof Date && !isNaN(val.getTime())) return val;
+      if (typeof val === 'number') {
+        return new Date(Math.round((val - 25569) * 86400 * 1000));
+      }
+      let str = String(val).trim();
+      if (!str) return null;
+      str = str.replace(/^['"\s]+|['"\s]+$/g, '');
+      if (!str) return null;
+
+      if (/^\d{5}(\.\d+)?$/.test(str)) {
+        return new Date(Math.round((parseFloat(str) - 25569) * 86400 * 1000));
+      }
+
+      const cleaned = str.replace(/[.年月]/g, '/').replace(/日/g, '').replace(/-/g, '/');
+      const d = new Date(cleaned);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    function formatDate(d) {
+      if (!d || isNaN(d.getTime())) return '-';
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    }
+
+    function computeRecordStatus(r, benchmark) {
+      const isPresale = (r.presaleTime !== null);
+      let isOverdue = false;
+      let statDateStr = '';
+
+      if (isPresale) {
+        isOverdue = (benchmark.getTime() - r.presaleTime.getTime()) > 0;
+        statDateStr = formatDate(r.presaleTime);
+      } else {
+        if (r.payTime) {
+          const diffDays = (benchmark.getTime() - r.payTime.getTime()) / (1000 * 60 * 60 * 24);
+          isOverdue = diffDays > 2;
+          const timeoutDate = new Date(r.payTime.getTime() + 2 * 24 * 60 * 60 * 1000);
+          statDateStr = formatDate(timeoutDate);
+        } else {
+          isOverdue = false;
+          statDateStr = '未有支付时间';
+        }
+      }
+
+      const stockoutOverdueQty = isOverdue ? (r.stockoutQty || 0) : 0;
+
+      return {
+        ...r,
+        isPresale,
+        isOverdue,
+        statDateStr,
+        stockoutOverdueQty
+      };
+    }
+
+    function renderAll() {
+      const computedList = rawData.map(r => computeRecordStatus(r, benchmarkTime));
+      renderKPIs(computedList);
+      renderSummaryTable(computedList);
+      renderDatePivotTable();
+      renderDetailTable();
+      renderMod4Table();
+    }
+
+    function renderKPIs(list) {
+      const totalOrders = list.length;
+      const mainStockoutQty = list.reduce((sum, r) => sum + (r.stockoutQty || 0), 0);
+      const totalQty = mainStockoutQty;
+
+      const paidList = list.filter(r => r.isPaid);
+      const paidQty = paidList.reduce((sum, r) => sum + (r.stockoutQty || 0), 0);
+      const unpaidQty = totalQty - paidQty;
+
+      const tailFilter = document.getElementById('tailStatusFilterSelect').value;
+      let activeScope = list;
+      if (tailFilter === 'paid') activeScope = paidList;
+      else if (tailFilter === 'unpaid') activeScope = list.filter(r => !r.isPaid);
+
+      const presaleOverdueQty = activeScope.filter(r => r.isPresale && r.isOverdue).reduce((s, r) => s + (r.stockoutQty || 0), 0);
+      const spotOverdueQty = activeScope.filter(r => !r.isPresale && r.isOverdue).reduce((s, r) => s + (r.stockoutQty || 0), 0);
+      const totalOverdueQty = activeScope.filter(r => r.isOverdue).reduce((s, r) => s + (r.stockoutQty || 0), 0);
+
+      // 缺货款号：对 Excel 表内的货号 (spu) 进行全局去重计数
+      const spuSet = new Set();
+      // SKU款数：对 Excel 表内的 sku 进行全局去重计数
+      const skuSet = new Set();
+      list.forEach(r => {
+        if (r.spu && r.spu !== '-' && r.spu !== '未知货号') spuSet.add(r.spu);
+        if (r.sku && r.sku !== '-' && r.sku !== '未知货号') skuSet.add(r.sku);
+      });
+      // 容错兜底
+      if (spuSet.size === 0) list.forEach(r => { if (r.spu) spuSet.add(r.spu); });
+      if (skuSet.size === 0) list.forEach(r => { if (r.sku) skuSet.add(r.sku); });
+
+      document.getElementById('kpiMainStockoutQty').textContent = mainStockoutQty.toLocaleString();
+      document.getElementById('kpiTotalQty').textContent = totalQty.toLocaleString();
+      document.getElementById('kpiTotalOrders').textContent = totalOrders.toLocaleString();
+      document.getElementById('kpiPaidQty').textContent = paidQty.toLocaleString();
+      document.getElementById('kpiUnpaidQty').textContent = unpaidQty.toLocaleString();
+      document.getElementById('kpiPresaleOverdue').textContent = presaleOverdueQty.toLocaleString();
+      document.getElementById('kpiSpotOverdue').textContent = spotOverdueQty.toLocaleString();
+      document.getElementById('kpiTotalOverdue').textContent = totalOverdueQty.toLocaleString();
+
+      const spuCountEl = document.getElementById('kpiSpuCount');
+      const skuCountEl = document.getElementById('kpiSkuCount');
+      if (spuCountEl) spuCountEl.textContent = spuSet.size.toLocaleString();
+      if (skuCountEl) skuCountEl.textContent = skuSet.size.toLocaleString();
+
+      document.getElementById('kpiOverdueScopeText').textContent = `当前筛选: ${tailFilter === 'paid' ? '已付尾款' : (tailFilter === 'unpaid' ? '未付尾款' : '全部状态')}`;
+    }
+
+    // 模块一：【缺货总数】= 已付尾款 + 未付尾款，各渠道按缺货总数降序排列
+    function renderSummaryTable(computedList) {
+      const tbody = document.getElementById('summaryTableBody');
+      const tfoot = document.getElementById('summaryTableFoot');
+      tbody.innerHTML = '';
+      tfoot.innerHTML = '';
+
+      const tailFilter = document.getElementById('tailStatusFilterSelect').value;
+      const channels = Array.from(new Set(rawData.map(r => r.channel))).filter(Boolean);
+
+      const channelMap = {};
+      channels.forEach(ch => {
+        channelMap[ch] = {
+          paidQty: 0,
+          unpaidQty: 0,
+          stockoutSumQty: 0,
+          noPresaleQty: 0,
+          hasPresaleQty: 0,
+          noPresaleOverdue: 0,
+          noPresaleNormal: 0,
+          hasPresaleNormal: 0,
+          hasPresaleOverdue: 0,
+          totalOverdue: 0
+        };
+      });
+
+      computedList.forEach(r => {
+        const c = channelMap[r.channel];
+        if (!c) return;
+
+        const rowStockout = r.stockoutQty || 0;
+
+        if (r.isPaid) c.paidQty += rowStockout;
+        else c.unpaidQty += rowStockout;
+
+        const matchScope = (tailFilter === 'all') || (tailFilter === 'paid' && r.isPaid) || (tailFilter === 'unpaid' && !r.isPaid);
+        if (matchScope) {
+          if (!r.isPresale) {
+            c.noPresaleQty += rowStockout;
+            if (r.isOverdue) {
+              c.noPresaleOverdue += rowStockout;
+              c.totalOverdue += rowStockout;
+            } else {
+              c.noPresaleNormal += rowStockout;
+            }
+          } else {
+            c.hasPresaleQty += rowStockout;
+            if (r.isOverdue) {
+              c.hasPresaleOverdue += rowStockout;
+              c.totalOverdue += rowStockout;
+            } else {
+              c.hasPresaleNormal += rowStockout;
+            }
+          }
+        }
+      });
+
+      // 核心公式：缺货总数 = 已付尾款 + 未付尾款
+      channels.forEach(ch => {
+        const c = channelMap[ch];
+        c.stockoutSumQty = c.paidQty + c.unpaidQty;
+      });
+
+      // 渠道行自动按【缺货总数】从高到低降序排序
+      channels.sort((a, b) => {
+        const qtyA = channelMap[a] ? channelMap[a].stockoutSumQty : 0;
+        const qtyB = channelMap[b] ? channelMap[b].stockoutSumQty : 0;
+        return qtyB - qtyA;
+      });
+
+      const grandTotal = {
+        paidQty: 0,
+        unpaidQty: 0,
+        stockoutSumQty: 0,
+        noPresaleQty: 0,
+        hasPresaleQty: 0,
+        noPresaleOverdue: 0,
+        noPresaleNormal: 0,
+        hasPresaleNormal: 0,
+        hasPresaleOverdue: 0,
+        totalOverdue: 0
+      };
+
+      channels.forEach(ch => {
+        const item = channelMap[ch];
+        grandTotal.paidQty += item.paidQty;
+        grandTotal.unpaidQty += item.unpaidQty;
+        grandTotal.noPresaleQty += item.noPresaleQty;
+        grandTotal.hasPresaleQty += item.hasPresaleQty;
+        grandTotal.noPresaleOverdue += item.noPresaleOverdue;
+        grandTotal.noPresaleNormal += item.noPresaleNormal;
+        grandTotal.hasPresaleNormal += item.hasPresaleNormal;
+        grandTotal.hasPresaleOverdue += item.hasPresaleOverdue;
+        grandTotal.totalOverdue += item.totalOverdue;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="font-medium text-left px-3 text-slate-800">${escapeHtml(ch)}</td>
+          <td class="text-slate-700">${item.paidQty}</td>
+          <td class="text-slate-600">${item.unpaidQty}</td>
+          <td class="highlight-col-stockout">${item.stockoutSumQty}</td>
+          <td class="text-slate-700">${item.noPresaleQty}</td>
+          <td class="text-slate-700">${item.hasPresaleQty}</td>
+          <td class="${item.noPresaleOverdue > 0 ? 'text-red-600 font-semibold' : 'text-slate-400'}">${item.noPresaleOverdue}</td>
+          <td class="text-slate-600">${item.noPresaleNormal}</td>
+          <td class="text-slate-600">${item.hasPresaleNormal}</td>
+          <td class="${item.hasPresaleOverdue > 0 ? 'text-red-600 font-semibold' : 'text-slate-400'}">${item.hasPresaleOverdue}</td>
+          <td class="highlight-col-overdue">${item.totalOverdue}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      grandTotal.stockoutSumQty = grandTotal.paidQty + grandTotal.unpaidQty;
+
+      tfoot.innerHTML = `
+        <tr class="border-t-2 border-slate-300">
+          <td class="text-left font-bold text-slate-900 px-3 bg-slate-100">合计</td>
+          <td class="font-bold text-slate-800 bg-slate-50">${grandTotal.paidQty}</td>
+          <td class="font-bold text-slate-700 bg-slate-50">${grandTotal.unpaidQty}</td>
+          <td class="highlight-col-stockout bg-rose-200">${grandTotal.stockoutSumQty}</td>
+          <td class="font-bold text-slate-800 bg-slate-50">${grandTotal.noPresaleQty}</td>
+          <td class="font-bold text-slate-800 bg-slate-50">${grandTotal.hasPresaleQty}</td>
+          <td class="font-bold bg-slate-50 ${grandTotal.noPresaleOverdue > 0 ? 'text-red-600' : 'text-slate-500'}">${grandTotal.noPresaleOverdue}</td>
+          <td class="font-bold text-slate-700 bg-slate-50">${grandTotal.noPresaleNormal}</td>
+          <td class="font-bold text-slate-700 bg-slate-50">${grandTotal.hasPresaleNormal}</td>
+          <td class="font-bold bg-slate-50 ${grandTotal.hasPresaleOverdue > 0 ? 'text-red-600' : 'text-slate-500'}">${grandTotal.hasPresaleOverdue}</td>
+          <td class="highlight-col-overdue bg-amber-200">${grandTotal.totalOverdue}</td>
+        </tr>
+      `;
+    }
+
+    function renderDatePivotTable() {
+      const computedList = rawData.map(r => computeRecordStatus(r, benchmarkTime));
+      const tailFilter = document.getElementById('mod2TailFilterSelect') ? document.getElementById('mod2TailFilterSelect').value : 'all';
+      const overdueFilter = document.getElementById('mod2OverdueFilterSelect') ? document.getElementById('mod2OverdueFilterSelect').value : 'all';
+
+      // 1. 尾款状态筛选
+      let filtered = computedList;
+      if (tailFilter === 'paid') {
+        filtered = filtered.filter(r => r.isPaid);
+      } else if (tailFilter === 'unpaid') {
+        filtered = filtered.filter(r => !r.isPaid);
+      }
+
+      // 2. 缺货超时 / 缺货未超时 筛选联动
+      if (overdueFilter === 'overdue') {
+        filtered = filtered.filter(r => r.isOverdue);
+      } else if (overdueFilter === 'normal') {
+        filtered = filtered.filter(r => !r.isOverdue);
+      }
+
+      const dateSet = new Set();
+      filtered.forEach(r => {
+        if (r.statDateStr && r.statDateStr !== '-' && r.statDateStr !== '未有支付时间') {
+          dateSet.add(r.statDateStr);
+        }
+      });
+      const dateList = Array.from(dateSet).sort();
+      const channels = Array.from(new Set(rawData.map(r => r.channel))).filter(Boolean);
+
+      const thead = document.getElementById('datePivotHead');
+      const tbody = document.getElementById('datePivotBody');
+      const tfoot = document.getElementById('datePivotFoot');
+
+      if (dateList.length === 0) {
+        thead.innerHTML = `<tr><th class="py-3 px-4 whitespace-nowrap">渠道</th><th class="py-3 px-4 text-center">暂无匹配日期数据</th></tr>`;
+        tbody.innerHTML = `<tr><td colspan="2" class="py-6 text-center text-slate-400">当前筛选条件下暂无有效履约日期数据</td></tr>`;
+        tfoot.innerHTML = '';
+        renderDatePivotAreaChart(filtered, []);
+        return;
+      }
+
+      // 左侧渠道表头禁止换行 whitespace-nowrap
+      let headHtml = `<tr>
+        <th class="py-3 px-3.5 text-slate-900 border border-slate-300 bg-slate-200 whitespace-nowrap" style="min-width: 170px;">渠道 / 履约日期</th>`;
+      dateList.forEach(d => {
+        const shortDate = d.replace(/^\d{4}-/, '');
+        headHtml += `<th class="py-3 px-2 text-center border border-slate-300 min-w-[75px] whitespace-nowrap" title="${d}">${shortDate}</th>`;
+      });
+      headHtml += `<th class="py-3 px-3 text-center border border-slate-300 bg-yellow-100 text-slate-900 font-bold whitespace-nowrap" style="width: 100px;">总计 ▼</th></tr>`;
+      thead.innerHTML = headHtml;
+
+      tbody.innerHTML = '';
+      
+      const matrixMap = {};
+      channels.forEach(ch => {
+        matrixMap[ch] = {};
+        dateList.forEach(d => matrixMap[ch][d] = 0);
+      });
+      const colTotals = {};
+      dateList.forEach(d => colTotals[d] = 0);
+
+      filtered.forEach(r => {
+        const rowStockout = r.stockoutQty || 0;
+        if (matrixMap[r.channel] && matrixMap[r.channel][r.statDateStr] !== undefined) {
+          matrixMap[r.channel][r.statDateStr] += rowStockout;
+          colTotals[r.statDateStr] += rowStockout;
+        }
+      });
+
+      const channelRowSums = {};
+      channels.forEach(ch => {
+        let sum = 0;
+        dateList.forEach(d => {
+          sum += (matrixMap[ch][d] || 0);
+        });
+        channelRowSums[ch] = sum;
+      });
+
+      // 渠道按总计降序排布
+      channels.sort((a, b) => (channelRowSums[b] || 0) - (channelRowSums[a] || 0));
+
+      let grandMatrixTotal = 0;
+
+      channels.forEach(ch => {
+        const rowSum = channelRowSums[ch] || 0;
+        grandMatrixTotal += rowSum;
+
+        // 左侧渠道单元格禁止换行 whitespace-nowrap
+        let rowHtml = `<tr>
+          <td class="py-2.5 px-3.5 font-medium text-slate-800 border border-slate-200 bg-slate-50 whitespace-nowrap">${escapeHtml(ch)}</td>`;
+
+        dateList.forEach(d => {
+          const qty = matrixMap[ch][d] || 0;
+          let cellClass = 'text-center border border-slate-200 py-2.5 px-2';
+          if (qty > 0) {
+            cellClass += ' font-semibold text-slate-900 bg-blue-50/60';
+          } else {
+            cellClass += ' text-slate-300';
+          }
+          rowHtml += `<td class="${cellClass}">${qty > 0 ? qty : 0}</td>`;
+        });
+
+        rowHtml += `<td class="py-2.5 px-3 text-center border border-slate-200 font-bold text-slate-900 bg-slate-100">${rowSum}</td></tr>`;
+        tbody.insertAdjacentHTML('beforeend', rowHtml);
+      });
+
+      let footHtml = `<tr>
+        <td class="py-3 px-3.5 font-bold text-slate-900 border border-slate-300 bg-slate-200 whitespace-nowrap">总计</td>`;
+      dateList.forEach(d => {
+        footHtml += `<td class="py-3 px-2 text-center font-bold text-slate-900 border border-slate-300 bg-slate-100">${colTotals[d]}</td>`;
+      });
+      footHtml += `<td class="py-3 px-3 text-center font-black text-red-600 border border-slate-300 bg-yellow-200">${grandMatrixTotal}</td></tr>`;
+      tfoot.innerHTML = footHtml;
+
+      renderDatePivotAreaChart(filtered, dateList);
+    }
+
+    // 模块二：渲染各日期时间段缺货超时数量与预售发货缺货数量的双折线面积图（完全跟随联动，双色明显区分）
+    function renderDatePivotAreaChart(filteredList, dateList) {
+      const container = document.getElementById('mod2AreaChartContainer');
+      const peakTextEl = document.getElementById('mod2ChartPeakText');
+      const overdueTextEl = document.getElementById('mod2ChartOverdueText');
+      const presaleTextEl = document.getElementById('mod2ChartPresaleText');
+
+      if (!container) return;
+
+      if (!dateList || dateList.length === 0) {
+        container.innerHTML = '<span class="text-xs text-slate-400">当前筛选范围内暂无有效履约时效日期数据</span>';
+        if (peakTextEl) peakTextEl.textContent = '0 件';
+        if (overdueTextEl) overdueTextEl.textContent = '0 件';
+        if (presaleTextEl) presaleTextEl.textContent = '0 件';
+        return;
+      }
+
+      // 聚合每个日期的【缺货超时数量】与【预售发货缺货数量】
+      const dateOverdueMap = {};
+      const datePresaleStockoutMap = {};
+      dateList.forEach(d => {
+        dateOverdueMap[d] = 0;
+        datePresaleStockoutMap[d] = 0;
+      });
+
+      filteredList.forEach(r => {
+        const dStr = r.statDateStr;
+        if (dStr && dateOverdueMap[dStr] !== undefined) {
+          if (r.isOverdue) {
+            dateOverdueMap[dStr] += (r.stockoutQty || 0);
+          }
+          if (r.isPresale) {
+            datePresaleStockoutMap[dStr] += (r.stockoutQty || 0);
+          }
+        }
+      });
+
+      const overdueValues = dateList.map(d => dateOverdueMap[d] || 0);
+      const presaleValues = dateList.map(d => datePresaleStockoutMap[d] || 0);
+
+      const totalOverdue = overdueValues.reduce((s, v) => s + v, 0);
+      const totalPresaleStockout = presaleValues.reduce((s, v) => s + v, 0);
+      const peakVal = Math.max(...overdueValues, ...presaleValues, 0);
+
+      if (peakTextEl) peakTextEl.textContent = `${peakVal.toLocaleString()} 件`;
+      if (overdueTextEl) overdueTextEl.textContent = `${totalOverdue.toLocaleString()} 件`;
+      if (presaleTextEl) presaleTextEl.textContent = `${totalPresaleStockout.toLocaleString()} 件`;
+
+      // 构建高精度响应式 SVG 双折线面积图
+      const width = 880;
+      const height = 210;
+      const padLeft = 55;
+      const padRight = 35;
+      const padTop = 30;
+      const padBottom = 35;
+      const plotW = width - padLeft - padRight;
+      const plotH = height - padTop - padBottom;
+
+      const yMax = Math.max(peakVal * 1.18, 6);
+      const stepX = dateList.length > 1 ? plotW / (dateList.length - 1) : plotW / 2;
+
+      // 缺货超时点位（琥珀橙色/暖调）
+      const overduePoints = dateList.map((d, i) => {
+        const x = dateList.length > 1 ? (padLeft + i * stepX) : (padLeft + plotW / 2);
+        const y = padTop + plotH - (overdueValues[i] / yMax) * plotH;
+        return { x, y, date: d, val: overdueValues[i] };
+      });
+
+      // 预售发货缺货点位（靛青紫色/冷调）
+      const presalePoints = dateList.map((d, i) => {
+        const x = dateList.length > 1 ? (padLeft + i * stepX) : (padLeft + plotW / 2);
+        const y = padTop + plotH - (presaleValues[i] / yMax) * plotH;
+        return { x, y, date: d, val: presaleValues[i] };
+      });
+
+      // 缺货超时路径（琥珀橙）
+      let overdueLinePath = `M ${overduePoints[0].x} ${overduePoints[0].y}`;
+      for (let i = 1; i < overduePoints.length; i++) {
+        overdueLinePath += ` L ${overduePoints[i].x} ${overduePoints[i].y}`;
+      }
+      let overdueAreaPath = `${overdueLinePath} L ${overduePoints[overduePoints.length - 1].x} ${padTop + plotH} L ${overduePoints[0].x} ${padTop + plotH} Z`;
+
+      // 预售发货缺货路径（靛紫）
+      let presaleLinePath = `M ${presalePoints[0].x} ${presalePoints[0].y}`;
+      for (let i = 1; i < presalePoints.length; i++) {
+        presaleLinePath += ` L ${presalePoints[i].x} ${presalePoints[i].y}`;
+      }
+      let presaleAreaPath = `${presaleLinePath} L ${presalePoints[presalePoints.length - 1].x} ${padTop + plotH} L ${presalePoints[0].x} ${padTop + plotH} Z`;
+
+      let gridLines = '';
+      const gridTicks = 4;
+      for (let i = 0; i <= gridTicks; i++) {
+        const tickY = padTop + (plotH / gridTicks) * i;
+        const tickVal = Math.round(yMax - (i / gridTicks) * yMax);
+        gridLines += `
+          <line x1="${padLeft}" y1="${tickY}" x2="${width - padRight}" y2="${tickY}" stroke="#e2e8f0" stroke-dasharray="4 4" stroke-width="1" />
+          <text x="${padLeft - 10}" y="${tickY + 3.5}" text-anchor="end" fill="#94a3b8" font-size="10" font-mono>${tickVal}</text>
+        `;
+      }
+
+      let nodesSvg = '';
+      dateList.forEach((d, i) => {
+        const pOver = overduePoints[i];
+        const pPre = presalePoints[i];
+        const isPeak = (Math.max(pOver.val, pPre.val) === peakVal && peakVal > 0);
+
+        nodesSvg += `
+          <g class="cursor-pointer group">
+            <line x1="${pOver.x}" y1="${padTop}" x2="${pOver.x}" y2="${padTop + plotH}" stroke="#cbd5e1" stroke-width="1" stroke-opacity="0" class="group-hover:stroke-opacity-100 transition" />
+            
+            <!-- 预售发货缺货节点 (靛青紫色) -->
+            <circle cx="${pPre.x}" cy="${pPre.y}" r="${pPre.val > 0 ? '4' : '2.5'}" fill="#6366f1" stroke="#ffffff" stroke-width="1.8" />
+            ${pPre.val > 0 ? `<text x="${pPre.x}" y="${pPre.y - 7}" text-anchor="middle" font-size="9.5" font-weight="600" fill="#4338ca" font-mono>${pPre.val}</text>` : ''}
+            
+            <!-- 缺货超时节点 (温暖琥珀橙色 / 红色峰值) -->
+            <circle cx="${pOver.x}" cy="${pOver.y}" r="${isPeak ? '5.5' : (pOver.val > 0 ? '4.5' : '2.5')}" fill="${isPeak ? '#ef4444' : (pOver.val > 0 ? '#f59e0b' : '#94a3b8')}" stroke="#ffffff" stroke-width="2" class="group-hover:r-7 transition" />
+            ${pOver.val > 0 ? `<text x="${pOver.x}" y="${pOver.y + 13}" text-anchor="middle" font-size="${isPeak ? '10.5' : '9.5'}" font-weight="${isPeak ? 'bold' : '600'}" fill="${isPeak ? '#dc2626' : '#b45309'}" font-mono>${pOver.val}</text>` : ''}
+            
+            <!-- X 轴日期 (月-日) -->
+            <text x="${pOver.x}" y="${padTop + plotH + 20}" text-anchor="middle" font-size="10" fill="#475569" font-mono font-medium>${d.replace(/^\d{4}-/, '')}</text>
+          </g>
+        `;
+      });
+
+      const svgHtml = `
+        <svg viewBox="0 0 ${width} ${height}" class="w-full h-full select-none">
+          <defs>
+            <!-- 预售发货缺货渐变 (冷调靛紫) -->
+            <linearGradient id="mod2PresaleGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#6366f1" stop-opacity="0.25"/>
+              <stop offset="85%" stop-color="#818cf8" stop-opacity="0.03"/>
+              <stop offset="100%" stop-color="#ffffff" stop-opacity="0.0"/>
+            </linearGradient>
+            <!-- 缺货超时渐变 (暖调琥珀橙) -->
+            <linearGradient id="mod2OverdueGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.32"/>
+              <stop offset="85%" stop-color="#fbbf24" stop-opacity="0.04"/>
+              <stop offset="100%" stop-color="#ffffff" stop-opacity="0.0"/>
+            </linearGradient>
+            <filter id="shadowGlowAmber" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#f59e0b" flood-opacity="0.22"/>
+            </filter>
+          </defs>
+          ${gridLines}
+          <!-- 预售发货缺货趋势面积与虚线 (靛青紫色) -->
+          <path d="${presaleAreaPath}" fill="url(#mod2PresaleGrad)" />
+          <path d="${presaleLinePath}" fill="none" stroke="#6366f1" stroke-width="2.2" stroke-dasharray="4 2" stroke-linejoin="round" stroke-linecap="round" />
+          <!-- 缺货超时趋势面积与实线 (温暖琥珀橙色) -->
+          <path d="${overdueAreaPath}" fill="url(#mod2OverdueGrad)" />
+          <path d="${overdueLinePath}" fill="none" stroke="#f59e0b" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" filter="url(#shadowGlowAmber)" />
+          ${nodesSvg}
+        </svg>
+      `;
+
+      container.innerHTML = svgHtml;
+    }
+
+    function handleDetailSort(field) {
+      if (detailSortField === field) {
+        detailSortDir = (detailSortDir === 'asc' ? 'desc' : 'asc');
+      } else {
+        detailSortField = field;
+        detailSortDir = (field === 'stockoutQty' || field === 'stockoutOverdueQty' ? 'desc' : 'asc');
+      }
+      currentDetailPage = 1;
+      renderDetailTable();
+    }
+
+    // 模块四统一数据管道：导出与界面共用相同筛选和排序结果。
+    // 导出范围为所有符合当前筛选条件的记录，保持界面排序顺序；不受分页页码限制。
+    function getFilteredSortedDetailItems(computedList = rawData.map(r => computeRecordStatus(r, benchmarkTime))) {
+      const dateFilter = document.getElementById('detailDateFilter').value;
+      const groupFilter = document.getElementById('detailGroupFilter').value;
+      const statusFilter = document.getElementById('detailStatusFilter').value;
+      const tailFilter = document.getElementById('detailTailFilter') ? document.getElementById('detailTailFilter').value : 'all';
+      const searchKeyword = document.getElementById('detailSearchInput').value.trim().toLowerCase();
+
+      let items = computedList.map(r => {
+        const presaleDateStr = r.presaleTime ? formatDate(r.presaleTime) : '无预售(现货)';
+        const payDateStr = r.payTime ? formatDate(r.payTime) : '-';
+        let statusText = '履约正常';
+        if (r.isOverdue) statusText = r.isPresale ? '预售超时' : '现货超时';
+        return {
+          id: r.id,
+          orderNo: r.orderNo || '-',
+          presaleDate: presaleDateStr,
+          payDate: payDateStr,
+          statDate: r.statDateStr || '未定日期',
+          projectGroup: r.projectGroup || '',
+          channel: r.channel || '',
+          spu: r.spu || '',
+          sku: r.sku || '',
+          color: r.color || '',
+          size: r.size || '',
+          isOverdue: r.isOverdue,
+          isPresale: r.isPresale,
+          isPaid: r.isPaid,
+          tailStatus: r.tailStatus,
+          stockoutQty: r.stockoutQty || 0,
+          stockoutOverdueQty: r.stockoutOverdueQty || 0,
+          statusText,
+          imgUrl: r.imgUrl
+        };
+      });
+
+      if (statusFilter === 'overdue') items = items.filter(x => x.isOverdue);
+      if (tailFilter === 'paid') items = items.filter(x => x.isPaid);
+      else if (tailFilter === 'unpaid') items = items.filter(x => !x.isPaid);
+      if (dateFilter !== 'all') items = items.filter(x => x.statDate === dateFilter);
+      if (groupFilter !== 'all') items = items.filter(x => x.projectGroup === groupFilter || x.channel === groupFilter);
+      if (searchKeyword) {
+        items = items.filter(x =>
+          String(x.orderNo || '').toLowerCase().includes(searchKeyword) ||
+          String(x.spu || '').toLowerCase().includes(searchKeyword) ||
+          String(x.sku || '').toLowerCase().includes(searchKeyword) ||
+          String(x.color || '').toLowerCase().includes(searchKeyword) ||
+          String(x.statDate || '').toLowerCase().includes(searchKeyword) ||
+          String(x.presaleDate || '').toLowerCase().includes(searchKeyword)
+        );
+      }
+
+      items.sort((a, b) => {
+        let valA = a[detailSortField];
+        let valB = b[detailSortField];
+        if (detailSortField === 'stockoutQty' || detailSortField === 'stockoutOverdueQty') {
+          return detailSortDir === 'asc' ? (valA - valB) : (valB - valA);
+        }
+        if (detailSortField === 'presaleDate' || detailSortField === 'payDate' || detailSortField === 'statDate') {
+          valA = a[detailSortField] || '';
+          valB = b[detailSortField] || '';
+          return detailSortDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        }
+        valA = String(valA || '');
+        valB = String(valB || '');
+        return detailSortDir === 'asc' ? valA.localeCompare(valB, 'zh-CN') : valB.localeCompare(valA, 'zh-CN');
+      });
+      return items;
+    }
+
+    function renderDetailTable() {
+      const computedList = rawData.map(r => computeRecordStatus(r, benchmarkTime));
+      renderDateStatsBadges(computedList);
+      const items = getFilteredSortedDetailItems(computedList);
+
+      const uniqueOrderSet = new Set();
+      const uniqueSpuSet = new Set();
+      const uniqueSkuSet = new Set();
+      let totalScopeStockout = 0;
+      let totalScopeOverdue = 0;
+
+      items.forEach(x => {
+        if (x.orderNo && x.orderNo !== '-') uniqueOrderSet.add(x.orderNo);
+        if (x.spu) uniqueSpuSet.add(x.spu);
+        if (x.sku) uniqueSkuSet.add(x.sku);
+        totalScopeStockout += (x.stockoutQty || 0);
+        totalScopeOverdue += (x.stockoutOverdueQty || 0);
+      });
+
+      // 渲染专属置顶高亮汇总行（严格与重构后的新列顺序对齐）
+      const pinnedSummaryRow = document.getElementById('detailPinnedSummaryRow');
+      pinnedSummaryRow.innerHTML = `
+        <td class="py-2.5 px-3 text-center text-slate-400 font-normal">-</td>
+        <td class="py-2.5 px-3 text-center text-slate-400 font-normal">-</td>
+        <td class="py-2.5 px-3 font-bold text-blue-800">
+          <span>总订单: </span><span class="font-mono text-slate-900">${uniqueOrderSet.size.toLocaleString()}</span> 笔
+        </td>
+        <td class="py-2.5 px-3 text-center text-slate-400 font-normal">-</td>
+        <td class="py-2.5 px-3 text-center text-slate-400 font-normal">-</td>
+        <td class="py-2.5 px-3 text-center text-slate-400 font-normal">-</td>
+        <td class="py-2.5 px-3 text-center text-slate-400 font-normal">-</td>
+        <td class="py-2.5 px-3 font-bold text-purple-800">
+          <span>款号: </span><span class="font-mono text-slate-900">${uniqueSpuSet.size.toLocaleString()}</span> 款
+        </td>
+        <td class="py-2.5 px-3 font-bold text-indigo-800">
+          <span>SKU: </span><span class="font-mono text-slate-900">${uniqueSkuSet.size.toLocaleString()}</span> 个
+        </td>
+        <td class="py-2.5 px-3 text-center font-black text-amber-700 text-sm bg-amber-100/90 border-x border-amber-300">
+          ${totalScopeOverdue.toLocaleString()}
+        </td>
+        <td class="py-2.5 px-3 text-center font-black text-red-600 text-sm bg-red-100/90 border-x border-red-300">
+          ${totalScopeStockout.toLocaleString()}
+        </td>
+        <td class="py-2.5 px-3 text-center text-slate-600 font-medium text-[11px]">当前范围合计</td>
+        <td class="py-2.5 px-3 text-center text-slate-400 font-normal">-</td>
+        <td class="py-2.5 px-3 text-center text-slate-400 font-normal">-</td>
+      `;
+
+      const sortFields = ['orderNo', 'presaleDate', 'payDate', 'statDate', 'projectGroup', 'spu', 'sku', 'stockoutOverdueQty', 'stockoutQty', 'statusText', 'color', 'size'];
+      sortFields.forEach(f => {
+        const iconEl = document.getElementById(`sortIcon_${f}`);
+        if (!iconEl) return;
+        if (detailSortField === f) {
+          iconEl.textContent = detailSortDir === 'asc' ? '▲' : '▼';
+          iconEl.className = 'text-[11px] font-bold text-yellow-600 font-mono';
+        } else {
+          iconEl.textContent = '⇅';
+          iconEl.className = 'text-[10px] text-slate-400 font-mono';
+        }
+      });
+
+      const totalCount = items.length;
+      const totalPages = Math.max(1, Math.ceil(totalCount / detailPageSize));
+      if (currentDetailPage > totalPages) currentDetailPage = totalPages;
+
+      const startIdx = (currentDetailPage - 1) * detailPageSize;
+      const pageItems = items.slice(startIdx, startIdx + detailPageSize);
+
+      document.getElementById('skuDetailCountBadge').textContent = `共 ${totalCount} 条明细`;
+      document.getElementById('pageIndicator').textContent = `${currentDetailPage} / ${totalPages}`;
+      document.getElementById('btnPrevPage').disabled = (currentDetailPage <= 1);
+      document.getElementById('btnNextPage').disabled = (currentDetailPage >= totalPages);
+      document.getElementById('detailPaginationText').textContent = `正在展示第 ${startIdx + 1} - ${Math.min(startIdx + detailPageSize, totalCount)} 条 (共 ${totalCount} 条记录)`;
+
+      const tbody = document.getElementById('detailTableBody');
+      tbody.innerHTML = '';
+
+      if (pageItems.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="14" class="py-8 text-center text-slate-400">未找到符合条件的商品缺货明细</td></tr>`;
+        return;
+      }
+
+      pageItems.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-200';
+
+        let tagHtml = '';
+        if (item.isOverdue) {
+          if (item.isPresale) {
+            tagHtml = `<span class="bg-amber-100 text-amber-800 border border-amber-200 text-[10px] px-1.5 py-0.5 rounded font-medium">预售超时</span>`;
+          } else {
+            tagHtml = `<span class="bg-orange-100 text-orange-800 border border-orange-200 text-[10px] px-1.5 py-0.5 rounded font-medium">现货超时</span>`;
+          }
+        } else {
+          tagHtml = `<span class="badge-normal text-[10px] px-1.5 py-0.5 rounded font-medium">履约正常</span>`;
+        }
+
+        const validImg = item.imgUrl || defaultSvg;
+
+        // 重排表格单元格顺序：缺货超时数量、缺货数量、状态标记前移；颜色、尺码后移
+        tr.innerHTML = `
+          <td class="py-2 px-3 text-center text-slate-400 font-mono">${startIdx + idx + 1}</td>
+          <td class="py-2 px-3 text-center">
+            <div class="w-10 h-10 mx-auto rounded-lg overflow-hidden border border-slate-200 bg-white flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-yellow-400 transition"
+              onmouseenter="showImageHover(event, '${encodeURIComponent(validImg)}', '${escapeJs(item.spu)}', '${escapeJs(item.color + ' / ' + item.size)}', '${item.stockoutQty}', '${item.stockoutOverdueQty}', '${escapeJs(item.orderNo)}')"
+              onmousemove="moveImageHover(event)"
+              onmouseleave="hideImageHover()"
+              onclick="openImageModal('${encodeURIComponent(validImg)}', '${escapeJs(item.spu)}', '${escapeJs(item.sku)}', '${escapeJs(item.color + ' / ' + item.size)}', '${item.stockoutQty}', '${item.stockoutOverdueQty}', '${escapeJs(item.statDate)}', '${escapeJs(item.presaleDate)}', '${escapeJs(item.payDate)}', '${escapeJs(item.orderNo)}')">
+              <img src="${validImg}" onerror="this.onerror=null;this.src='${defaultSvg}'" alt="图" class="w-full h-full object-cover pointer-events-none">
+            </div>
+          </td>
+          <td class="py-2 px-3 font-mono font-medium text-slate-800 text-[11px]">${escapeHtml(item.orderNo)}</td>
+          <td class="py-2 px-3 font-mono text-slate-600 text-[11px]">${escapeHtml(item.presaleDate)}</td>
+          <td class="py-2 px-3 font-mono text-slate-600 text-[11px]">${escapeHtml(item.payDate)}</td>
+          <td class="py-2 px-3 font-semibold text-slate-700 font-mono">${escapeHtml(item.statDate)}</td>
+          <td class="py-2 px-3 font-medium text-slate-800">${escapeHtml(item.projectGroup)}</td>
+          <td class="py-2 px-3 font-semibold text-slate-800">${escapeHtml(item.spu)}</td>
+          <td class="py-2 px-3 font-mono text-slate-600 text-[11px]">${escapeHtml(item.sku)}</td>
+          <td class="py-2 px-3 text-center">
+            <span class="inline-block px-2.5 py-0.5 rounded-full font-bold text-xs ${item.stockoutOverdueQty > 0 ? 'bg-amber-100 text-amber-800 font-black' : 'text-slate-400'}">
+              ${item.stockoutOverdueQty}
+            </span>
+          </td>
+          <td class="py-2 px-3 text-center">
+            <span class="inline-block px-2.5 py-0.5 rounded-full font-bold text-xs ${item.isOverdue ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-700'}">
+              ${item.stockoutQty}
+            </span>
+          </td>
+          <td class="py-2 px-3 text-center">${tagHtml}</td>
+          <td class="py-2 px-3 text-slate-600">${escapeHtml(item.color)}</td>
+          <td class="py-2 px-3 text-slate-600">${escapeHtml(item.size)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function handleMod4Sort(field) {
+      if (mod4SortField === field) {
+        mod4SortDir = (mod4SortDir === 'asc' ? 'desc' : 'asc');
+      } else {
+        mod4SortField = field;
+        mod4SortDir = (field === 'totalStockoutQty' || field === 'totalOverdueQty' || field === 'overdueRate' || field === 'skuCount' ? 'desc' : 'asc');
+      }
+      currentMod4Page = 1;
+      renderMod4Table();
+    }
+
+    // 模块三统一数据管道：看板渲染与 Excel 导出复用相同筛选、聚合及排序逻辑。
+    // 返回所有匹配当前界面条件的货号，不限于当前分页中的可视行。
+    function getFilteredSortedMod4List() {
+      const computedList = rawData.map(r => computeRecordStatus(r, benchmarkTime));
+      const dateFilter = document.getElementById('mod4DateFilter').value;
+      const groupFilter = document.getElementById('mod4GroupFilter').value;
+      const statusFilter = document.getElementById('mod4StatusFilter').value;
+      const tailFilter = document.getElementById('mod4TailFilter') ? document.getElementById('mod4TailFilter').value : 'all';
+      const searchKeyword = document.getElementById('mod4SearchInput').value.trim().toLowerCase();
+
+      let items = computedList;
+      if (dateFilter !== 'all') items = items.filter(x => x.statDateStr === dateFilter);
+      if (groupFilter !== 'all') items = items.filter(x => x.projectGroup === groupFilter || x.channel === groupFilter);
+      if (tailFilter === 'paid') items = items.filter(x => x.isPaid);
+      else if (tailFilter === 'unpaid') items = items.filter(x => !x.isPaid);
+
+      const spuMap = new Map();
+      items.forEach(r => {
+        const spuKey = r.spu || '未知货号';
+        if (!spuMap.has(spuKey)) {
+          spuMap.set(spuKey, {
+            spu: spuKey,
+            imgUrl: r.imgUrl || '',
+            projectGroup: r.projectGroup || '',
+            channel: r.channel || '',
+            totalStockoutQty: 0,
+            totalOverdueQty: 0,
+            skus: new Set(),
+            variantsMap: new Map(),
+            dateStats: {}
+          });
+        }
+        const spuItem = spuMap.get(spuKey);
+        if (!spuItem.imgUrl && r.imgUrl) spuItem.imgUrl = r.imgUrl;
+        spuItem.totalStockoutQty += (r.stockoutQty || 0);
+        spuItem.totalOverdueQty += (r.stockoutOverdueQty || 0);
+        if (r.sku) spuItem.skus.add(r.sku);
+
+        const dStr = r.statDateStr || '未定日期';
+        if (!spuItem.dateStats[dStr]) spuItem.dateStats[dStr] = { stockoutQty: 0, overdueQty: 0, presaleQty: 0 };
+        spuItem.dateStats[dStr].stockoutQty += (r.stockoutQty || 0);
+        spuItem.dateStats[dStr].overdueQty += (r.stockoutOverdueQty || 0);
+        if (r.isPresale) spuItem.dateStats[dStr].presaleQty += (r.stockoutQty || 0);
+
+        const colorName = String(r.color || '-').trim() || '-';
+        const sizeName = String(r.size || '-').trim() || '-';
+        const varKey = `${colorName}____${sizeName}`;
+        if (!spuItem.variantsMap.has(varKey)) {
+          spuItem.variantsMap.set(varKey, { color: colorName, size: sizeName, stockoutQty: 0, overdueQty: 0 });
+        }
+        const v = spuItem.variantsMap.get(varKey);
+        v.stockoutQty += (r.stockoutQty || 0);
+        v.overdueQty += (r.stockoutOverdueQty || 0);
+      });
+
+      let spuList = Array.from(spuMap.values()).map(x => {
+        const skuCount = x.skus.size || 1;
+        const overdueRate = x.totalStockoutQty > 0 ? (x.totalOverdueQty / x.totalStockoutQty) * 100 : 0;
+        const variants = Array.from(x.variantsMap.values()).sort((a, b) => b.stockoutQty - a.stockoutQty);
+        return {
+          ...x,
+          skuCount,
+          overdueRate,
+          variants,
+          variantDesc: variants.map(v => `${v.color}/${v.size}(缺:${v.stockoutQty},超:${v.overdueQty})`).join('; ')
+        };
+      });
+
+      if (statusFilter === 'overdue') spuList = spuList.filter(x => x.totalOverdueQty > 0);
+      if (searchKeyword) {
+        spuList = spuList.filter(x =>
+          String(x.spu || '').toLowerCase().includes(searchKeyword) ||
+          String(x.projectGroup || '').toLowerCase().includes(searchKeyword) ||
+          String(x.channel || '').toLowerCase().includes(searchKeyword)
+        );
+      }
+
+      window.mod4SpuCache.clear();
+      spuList.forEach(item => window.mod4SpuCache.set(item.spu, item));
+
+      spuList.sort((a, b) => {
+        let valA = a[mod4SortField];
+        let valB = b[mod4SortField];
+        if (mod4SortField === 'totalStockoutQty' || mod4SortField === 'totalOverdueQty' || mod4SortField === 'skuCount' || mod4SortField === 'overdueRate') {
+          return mod4SortDir === 'asc' ? (valA - valB) : (valB - valA);
+        }
+        valA = String(valA || '');
+        valB = String(valB || '');
+        return mod4SortDir === 'asc' ? valA.localeCompare(valB, 'zh-CN') : valB.localeCompare(valA, 'zh-CN');
+      });
+      return spuList;
+    }
+
+    function renderMod4Table() {
+      const spuList = getFilteredSortedMod4List();
+
+      // 汇总当前范围总指标
+      const totalSpuCount = spuList.length;
+      let sumScopeSkus = 0;
+      let sumScopeStockout = 0;
+      let sumScopeOverdue = 0;
+
+      spuList.forEach(x => {
+        sumScopeSkus += x.skuCount;
+        sumScopeStockout += x.totalStockoutQty;
+        sumScopeOverdue += x.totalOverdueQty;
+      });
+      const avgOverdueRate = sumScopeStockout > 0 ? ((sumScopeOverdue / sumScopeStockout) * 100).toFixed(1) : '0.0';
+
+      // 模块四专属置顶汇总行（去掉“汇总”两字及图标，保留序号列占位）
+      const mod4PinnedRow = document.getElementById('mod4PinnedSummaryRow');
+      mod4PinnedRow.innerHTML = `
+        <td class="py-2.5 px-3 text-center text-slate-400 font-normal">-</td>
+        <td class="py-2.5 px-3 text-center text-slate-400 font-normal">-</td>
+        <td class="py-2.5 px-3 font-bold text-indigo-900">
+          <span>总款号: </span><span class="font-mono text-slate-900">${totalSpuCount.toLocaleString()}</span> 款
+        </td>
+        <td class="py-2.5 px-3 text-center text-slate-400 font-normal">-</td>
+        <td class="py-2.5 px-3 text-center font-bold text-slate-800">
+          <span class="font-mono text-indigo-700">${sumScopeSkus.toLocaleString()}</span> 个SKU
+        </td>
+        <td class="py-2.5 px-3 text-center font-black text-red-600 text-sm bg-red-100/90 border-x border-red-300">
+          ${sumScopeStockout.toLocaleString()}
+        </td>
+        <td class="py-2.5 px-3 text-center font-black text-amber-700 text-sm bg-amber-100/90 border-x border-amber-300">
+          ${sumScopeOverdue.toLocaleString()}
+        </td>
+        <td class="py-2.5 px-3 text-center font-bold text-slate-800 bg-indigo-50/70">
+          ${avgOverdueRate}%
+        </td>
+        <td class="py-2.5 px-3 text-center text-slate-500 font-medium text-[11px]">当前范围合计</td>
+      `;
+
+      // 更新模块四排序图标
+      const sortFields = ['spu', 'projectGroup', 'skuCount', 'totalStockoutQty', 'totalOverdueQty', 'overdueRate'];
+      sortFields.forEach(f => {
+        const iconEl = document.getElementById(`sortMod4_${f}`);
+        if (!iconEl) return;
+        if (mod4SortField === f) {
+          iconEl.textContent = mod4SortDir === 'asc' ? '▲' : '▼';
+          iconEl.className = 'text-[11px] font-bold text-indigo-600 font-mono';
+        } else {
+          iconEl.textContent = '⇅';
+          iconEl.className = 'text-[10px] text-slate-400 font-mono';
+        }
+      });
+
+      // 分页
+      const totalPages = Math.max(1, Math.ceil(totalSpuCount / mod4PageSize));
+      if (currentMod4Page > totalPages) currentMod4Page = totalPages;
+
+      const startIdx = (currentMod4Page - 1) * mod4PageSize;
+      const pageItems = spuList.slice(startIdx, startIdx + mod4PageSize);
+
+      document.getElementById('mod4SpuCountBadge').textContent = `共 ${totalSpuCount} 个货号款`;
+      document.getElementById('mod4PageIndicator').textContent = `${currentMod4Page} / ${totalPages}`;
+      document.getElementById('btnMod4PrevPage').disabled = (currentMod4Page <= 1);
+      document.getElementById('btnMod4NextPage').disabled = (currentMod4Page >= totalPages);
+      document.getElementById('mod4PaginationText').textContent = `正在展示第 ${startIdx + 1} - ${Math.min(startIdx + mod4PageSize, totalSpuCount)} 款 (共 ${totalSpuCount} 款货号)`;
+
+      const tbody = document.getElementById('mod4TableBody');
+      tbody.innerHTML = '';
+
+      if (pageItems.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="py-8 text-center text-slate-400">未找到符合条件的货号汇总数据</td></tr>`;
+        return;
+      }
+
+      pageItems.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-indigo-50/30 transition border-b border-slate-200';
+
+        const validImg = item.imgUrl || defaultSvg;
+        const rateText = item.overdueRate.toFixed(1) + '%';
+
+        let statusBadge = '<span class="badge-normal text-[10px] px-2 py-0.5 rounded-full font-medium">履约充足</span>';
+        if (item.totalOverdueQty > 0) {
+          if (item.overdueRate >= 70) {
+            statusBadge = '<span class="bg-red-100 text-red-700 border border-red-200 text-[10px] px-2 py-0.5 rounded-full font-bold">严重超时</span>';
+          } else {
+            statusBadge = '<span class="bg-amber-100 text-amber-800 border border-amber-200 text-[10px] px-2 py-0.5 rounded-full font-medium">部分超时</span>';
+          }
+        }
+
+        // 放大主图为 80×80px (w-20 h-20)，紧凑排布后续列
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 text-center text-slate-400 font-mono">${startIdx + idx + 1}</td>
+          <td class="py-2.5 px-3 text-center">
+            <div class="w-20 h-20 mx-auto rounded-xl overflow-hidden border border-slate-300 bg-white flex items-center justify-center cursor-pointer shadow-sm hover:ring-2 hover:ring-indigo-500 hover:shadow-md transition"
+              onmouseenter="handleMod4ImgEnter(event, '${escapeJs(item.spu)}')"
+              onmousemove="handleMod4ImgMove(event)"
+              onmouseleave="handleMod4ImgLeave()"
+              onclick="handleMod4ImgClick('${escapeJs(item.spu)}')">
+              <img src="${validImg}" onerror="this.onerror=null;this.src='${defaultSvg}'" alt="款图" class="w-full h-full object-cover pointer-events-none">
+            </div>
+          </td>
+          <td class="py-2.5 px-3">
+            <span class="font-bold text-slate-900 text-xs block">${escapeHtml(item.spu)}</span>
+            <span class="text-[10px] text-indigo-600 font-medium">悬停大图透视 · 点击放大</span>
+          </td>
+          <td class="py-2.5 px-3 font-medium text-slate-700">${escapeHtml(item.projectGroup)}</td>
+          <td class="py-2.5 px-2.5 text-center">
+            <span class="inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono font-bold text-xs">
+              ${item.skuCount} 款
+            </span>
+          </td>
+          <td class="py-2.5 px-2.5 text-center">
+            <span class="inline-block px-2.5 py-1 rounded-full font-black text-xs ${item.totalStockoutQty > 0 ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-slate-100 text-slate-600'}">
+              ${item.totalStockoutQty}
+            </span>
+          </td>
+          <td class="py-2.5 px-2.5 text-center">
+            <span class="inline-block px-2.5 py-1 rounded-full font-black text-xs ${item.totalOverdueQty > 0 ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'text-slate-400'}">
+              ${item.totalOverdueQty}
+            </span>
+          </td>
+          <td class="py-2.5 px-2.5 text-center">
+            <div class="flex items-center justify-center gap-1.5">
+              <div class="w-10 bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                <div class="bg-amber-500 h-full" style="width: ${Math.min(100, item.overdueRate)}%"></div>
+              </div>
+              <span class="font-mono text-[11px] font-semibold text-slate-700">${rateText}</span>
+            </div>
+          </td>
+          <td class="py-2.5 px-2.5 text-center">${statusBadge}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 通用二维透视矩阵构建渲染器 (用于悬停 Tooltip 及点击后的 Modal 弹窗)
+    function renderMatrixToTable(variants, theadEl, tbodyEl, tfootEl) {
+      const colorSet = new Set();
+      const sizeSet = new Set();
+      const matrix = {};
+
+      (variants || []).forEach(v => {
+        const c = String(v.color || '-').trim() || '-';
+        const s = String(v.size || '-').trim() || '-';
+        colorSet.add(c);
+        sizeSet.add(s);
+        if (!matrix[c]) matrix[c] = {};
+        if (!matrix[c][s]) matrix[c][s] = { stockoutQty: 0, overdueQty: 0 };
+        matrix[c][s].stockoutQty += (v.stockoutQty || 0);
+        matrix[c][s].overdueQty += (v.overdueQty || 0);
+      });
+
+      const colors = Array.from(colorSet);
+      const sizes = Array.from(sizeSet);
+
+      if (colors.length === 0 || sizes.length === 0) {
+        theadEl.innerHTML = `<tr><th class="py-2 px-2">暂无规格</th></tr>`;
+        tbodyEl.innerHTML = `<tr><td class="py-4 text-center text-slate-400">暂无颜色尺码数据</td></tr>`;
+        tfootEl.innerHTML = '';
+        return { colors, sizes, grandStockout: 0, grandOverdue: 0 };
+      }
+
+      // 1. thead: 第一列“颜色 \ 尺码”，中间各尺码列，最后一列“行汇总”
+      let thHtml = `<tr>
+        <th class="py-1.5 px-2 text-left bg-slate-200/90 border border-slate-300 text-slate-700 min-w-[75px] font-semibold">颜色 \\ 尺码</th>`;
+      sizes.forEach(s => {
+        thHtml += `<th class="py-1.5 px-2 border border-slate-300 text-slate-700 min-w-[55px] font-mono font-semibold">${escapeHtml(s)}</th>`;
+      });
+      thHtml += `<th class="py-1.5 px-2 bg-indigo-100/80 border border-slate-300 text-indigo-900 font-bold min-w-[65px]">行汇总</th></tr>`;
+      theadEl.innerHTML = thHtml;
+
+      // 2. tbody: 各颜色行，各尺码单元格，行汇总
+      tbodyEl.innerHTML = '';
+      const colTotals = {};
+      sizes.forEach(s => {
+        colTotals[s] = { stockoutQty: 0, overdueQty: 0 };
+      });
+
+      let grandStockout = 0;
+      let grandOverdue = 0;
+
+      colors.forEach(c => {
+        let rowStockout = 0;
+        let rowOverdue = 0;
+
+        let trHtml = `<tr class="hover:bg-slate-50 border-b border-slate-200">
+          <td class="py-1.5 px-2 text-left font-medium text-slate-800 bg-slate-50 border border-slate-200 truncate max-w-[95px]" title="${escapeHtml(c)}">${escapeHtml(c)}</td>`;
+
+        sizes.forEach(s => {
+          const cell = matrix[c] && matrix[c][s];
+          if (cell && (cell.stockoutQty > 0 || cell.overdueQty > 0)) {
+            rowStockout += cell.stockoutQty;
+            rowOverdue += cell.overdueQty;
+            colTotals[s].stockoutQty += cell.stockoutQty;
+            colTotals[s].overdueQty += cell.overdueQty;
+
+            trHtml += `<td class="py-1.5 px-1 border border-slate-200">
+              <div class="text-[11px] leading-tight flex items-center justify-center font-mono">
+                <span class="text-red-600 font-bold">${cell.stockoutQty}</span>
+                <span class="text-slate-300 text-[9px] mx-0.5">/</span>
+                <span class="${cell.overdueQty > 0 ? 'text-amber-700 font-bold' : 'text-slate-400'}">${cell.overdueQty}</span>
+              </div>
+            </td>`;
+          } else {
+            trHtml += `<td class="py-1.5 px-1 border border-slate-200 text-slate-300 text-[10px]">-</td>`;
+          }
+        });
+
+        grandStockout += rowStockout;
+        grandOverdue += rowOverdue;
+
+        // 行汇总单元格
+        trHtml += `<td class="py-1.5 px-1.5 border border-slate-200 bg-indigo-50/50 font-mono font-bold">
+          <div class="text-[11px] leading-tight flex items-center justify-center">
+            <span class="text-red-600 font-bold">${rowStockout}</span>
+            <span class="text-slate-300 text-[9px] mx-0.5">/</span>
+            <span class="${rowOverdue > 0 ? 'text-amber-700 font-bold' : 'text-slate-400'}">${rowOverdue}</span>
+          </div>
+        </td></tr>`;
+
+        tbodyEl.insertAdjacentHTML('beforeend', trHtml);
+      });
+
+      // 3. tfoot: 尺码列汇总行
+      let tfHtml = `<tr>
+        <td class="py-1.5 px-2 text-left font-bold text-slate-900 bg-slate-200/90 border border-slate-300">列汇总</td>`;
+
+      sizes.forEach(s => {
+        const ct = colTotals[s];
+        tfHtml += `<td class="py-1.5 px-1 border border-slate-300 bg-slate-100 font-mono font-bold">
+          <div class="text-[11px] leading-tight flex items-center justify-center">
+            <span class="text-red-600 font-bold">${ct.stockoutQty}</span>
+            <span class="text-slate-300 text-[9px] mx-0.5">/</span>
+            <span class="${ct.overdueQty > 0 ? 'text-amber-700 font-bold' : 'text-slate-400'}">${ct.overdueQty}</span>
+          </div>
+        </td>`;
+      });
+
+      tfHtml += `<td class="py-1.5 px-1.5 border border-slate-300 bg-indigo-100 font-mono font-black">
+        <div class="text-[11px] leading-tight flex items-center justify-center">
+          <span class="text-red-700 font-black">${grandStockout}</span>
+          <span class="text-slate-400 text-[9px] mx-0.5">/</span>
+          <span class="text-amber-800 font-black">${grandOverdue}</span>
+        </div>
+      </td></tr>`;
+
+      tfootEl.innerHTML = tfHtml;
+
+      return { colors, sizes, grandStockout, grandOverdue };
+    }
+
+    // 模块四：悬停大图时渲染该货号不同时间段【缺货超时数量】与【预售发货时间缺货数量】的折线图
+    function renderSpuOverdueLineChart(item) {
+      const container = document.getElementById('spuLineChartContainer');
+      const peakEl = document.getElementById('spuChartPeakText');
+      if (!container) return;
+
+      const dateStats = item.dateStats || {};
+      const dateKeys = Object.keys(dateStats)
+        .filter(d => d && d !== '-' && d !== '未定日期' && d !== '未有支付时间')
+        .sort();
+
+      if (dateKeys.length === 0) {
+        container.innerHTML = '<span class="text-xs text-slate-400">该款无明确履约时效日期记录</span>';
+        if (peakEl) peakEl.textContent = '0 件';
+        return;
+      }
+
+      const overdueValues = dateKeys.map(d => dateStats[d]?.overdueQty || 0);
+      const presaleValues = dateKeys.map(d => dateStats[d]?.presaleQty || 0);
+      const peakVal = Math.max(...overdueValues, ...presaleValues, 0);
+
+      if (peakEl) peakEl.textContent = `${peakVal} 件`;
+
+      const width = 470;
+      const height = 160;
+      const padLeft = 38;
+      const padRight = 30;
+      const padTop = 24;
+      const padBottom = 28;
+      const plotW = width - padLeft - padRight;
+      const plotH = height - padTop - padBottom;
+
+      const yMax = Math.max(peakVal * 1.25, 4);
+      const stepX = dateKeys.length > 1 ? plotW / (dateKeys.length - 1) : plotW / 2;
+
+      // 超时趋势点位
+      const overduePoints = dateKeys.map((d, i) => {
+        const x = dateKeys.length > 1 ? (padLeft + i * stepX) : (padLeft + plotW / 2);
+        const y = padTop + plotH - (overdueValues[i] / yMax) * plotH;
+        return { x, y, date: d, overdue: overdueValues[i] };
+      });
+
+      // 预售发货缺货趋势点位
+      const presalePoints = dateKeys.map((d, i) => {
+        const x = dateKeys.length > 1 ? (padLeft + i * stepX) : (padLeft + plotW / 2);
+        const y = padTop + plotH - (presaleValues[i] / yMax) * plotH;
+        return { x, y, date: d, presale: presaleValues[i] };
+      });
+
+      // 超时折线与面积路径
+      let overdueLinePath = `M ${overduePoints[0].x} ${overduePoints[0].y}`;
+      for (let i = 1; i < overduePoints.length; i++) {
+        overdueLinePath += ` L ${overduePoints[i].x} ${overduePoints[i].y}`;
+      }
+      let overdueAreaPath = `${overdueLinePath} L ${overduePoints[overduePoints.length - 1].x} ${padTop + plotH} L ${overduePoints[0].x} ${padTop + plotH} Z`;
+
+      // 预售发货缺货折线
+      let presaleLinePath = `M ${presalePoints[0].x} ${presalePoints[0].y}`;
+      for (let i = 1; i < presalePoints.length; i++) {
+        presaleLinePath += ` L ${presalePoints[i].x} ${presalePoints[i].y}`;
+      }
+
+      // 背景网格线
+      let gridLines = '';
+      const ticks = 3;
+      for (let i = 0; i <= ticks; i++) {
+        const y = padTop + (plotH / ticks) * i;
+        const val = Math.round(yMax - (i / ticks) * yMax);
+        gridLines += `
+          <line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="#e2e8f0" stroke-dasharray="3 3" stroke-width="1" />
+          <text x="${padLeft - 6}" y="${y + 3}" text-anchor="end" fill="#94a3b8" font-size="9" font-mono>${val}</text>
+        `;
+      }
+
+      // 数据圆点与数值
+      let dotsSvg = '';
+      dateKeys.forEach((d, i) => {
+        const pOver = overduePoints[i];
+        const pPre = presalePoints[i];
+        const isPeak = (Math.max(pOver.overdue, pPre.presale) === peakVal && peakVal > 0);
+
+        dotsSvg += `
+          <g>
+            <!-- 预售发货缺货圆点 (紫色) -->
+            ${pPre.presale > 0 ? `
+              <circle cx="${pPre.x}" cy="${pPre.y}" r="3.2" fill="#6366f1" stroke="#ffffff" stroke-width="1.5" />
+              <text x="${pPre.x}" y="${pPre.y - 5}" text-anchor="middle" font-size="8.5" font-weight="600" fill="#4338ca" font-mono>${pPre.presale}</text>
+            ` : ''}
+            <!-- 缺货超时圆点 (橙色/红色) -->
+            <circle cx="${pOver.x}" cy="${pOver.y}" r="${isPeak ? '4.5' : (pOver.overdue > 0 ? '3.5' : '2.2')}" fill="${isPeak ? '#dc2626' : (pOver.overdue > 0 ? '#d97706' : '#94a3b8')}" stroke="#ffffff" stroke-width="1.8" />
+            ${pOver.overdue > 0 ? `<text x="${pOver.x}" y="${pOver.y + 11}" text-anchor="middle" font-size="8.5" font-weight="${isPeak ? 'bold' : '600'}" fill="${isPeak ? '#dc2626' : '#b45309'}" font-mono>${pOver.overdue}</text>` : ''}
+            <!-- X 轴日期 -->
+            <text x="${pOver.x}" y="${padTop + plotH + 16}" text-anchor="middle" font-size="9" fill="#64748b" font-mono>${d.replace(/^\d{4}-/, '')}</text>
+          </g>
+        `;
+      });
+
+      const chartSvg = `
+        <svg viewBox="0 0 ${width} ${height}" class="w-full h-full select-none">
+          <defs>
+            <linearGradient id="spuLineAreaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.38"/>
+              <stop offset="85%" stop-color="#f59e0b" stop-opacity="0.05"/>
+              <stop offset="100%" stop-color="#ffffff" stop-opacity="0.0"/>
+            </linearGradient>
+          </defs>
+          ${gridLines}
+          <!-- 缺货超时面积与折线 -->
+          <path d="${overdueAreaPath}" fill="url(#spuLineAreaGrad)" />
+          <path d="${overdueLinePath}" fill="none" stroke="#d97706" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" />
+          <!-- 预售发货缺货折线 (紫色虚线) -->
+          <path d="${presaleLinePath}" fill="none" stroke="#6366f1" stroke-width="2" stroke-dasharray="3 2" stroke-linejoin="round" stroke-linecap="round" />
+          ${dotsSvg}
+        </svg>
+      `;
+
+      container.innerHTML = chartSvg;
+    }
+
+    // 模块四：悬停图片事件入口（展示时序折线图）
+    function handleMod4ImgEnter(e, spu) {
+      const item = window.mod4SpuCache.get(spu);
+      if (!item) return;
+
+      const validImg = item.imgUrl || defaultSvg;
+      const tooltip = document.getElementById('spuVariantHoverTooltip');
+      if (!tooltip) return;
+
+      // 统计预售缺货总量
+      let presaleStockoutSum = 0;
+      if (item.dateStats) {
+        Object.values(item.dateStats).forEach(s => presaleStockoutSum += (s.presaleQty || 0));
+      }
+
+      document.getElementById('spuHoverImgThumb').src = validImg;
+      document.getElementById('spuHoverSpuCode').textContent = `货号: ${item.spu}`;
+      document.getElementById('spuHoverGroupName').textContent = `所属: ${item.projectGroup}`;
+      document.getElementById('spuHoverTotalStockout').textContent = `缺货总量: ${item.totalStockoutQty} 件`;
+      document.getElementById('spuHoverTotalOverdue').textContent = `超时: ${item.totalOverdueQty} 件`;
+      const presaleBadge = document.getElementById('spuHoverPresaleStockout');
+      if (presaleBadge) {
+        presaleBadge.textContent = `预售缺货: ${presaleStockoutSum} 件`;
+      }
+
+      // 渲染该款不同时间段【缺货超时】与【预售发货缺货】的双折线图
+      renderSpuOverdueLineChart(item);
+
+      tooltip.classList.remove('hidden');
+      moveSpuHover(e);
+    }
+
+    function handleMod4ImgMove(e) {
+      moveSpuHover(e);
+    }
+
+    function handleMod4ImgLeave() {
+      hideSpuHover();
+    }
+
+    // 模块四：点击图片触发弹窗深度检视（保持不变，展示规格透视矩阵）
+    function handleMod4ImgClick(spu) {
+      hideImageHover();
+      hideSpuHover();
+      const item = window.mod4SpuCache.get(spu);
+      if (!item) return;
+
+      const validImg = item.imgUrl || defaultSvg;
+      const modal = document.getElementById('imageModal');
+      document.getElementById('modalImg').src = validImg;
+      document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-boxes-stacked text-indigo-600 mr-1.5"></i>货号 ${escapeHtml(item.spu)} 缺货透视详情`;
+
+      // 切换为货号透视矩阵模式
+      document.getElementById('modalDetailContent').classList.add('hidden');
+      const spuMatrixBox = document.getElementById('modalSpuMatrixContent');
+      spuMatrixBox.classList.remove('hidden');
+
+      document.getElementById('modalSpuCode').textContent = `货号: ${item.spu}`;
+      document.getElementById('modalSpuGroup').textContent = `所属: ${item.projectGroup}`;
+      document.getElementById('modalSpuStockout').textContent = `${item.totalStockoutQty} 件`;
+      document.getElementById('modalSpuOverdue').textContent = `${item.totalOverdueQty} 件`;
+      document.getElementById('modalSpuSkuCount').textContent = `包含 ${item.skuCount} 个SKU款`;
+
+      renderMatrixToTable(
+        item.variants,
+        document.getElementById('modalMatrixThead'),
+        document.getElementById('modalMatrixTbody'),
+        document.getElementById('modalMatrixTfoot')
+      );
+
+      modal.classList.remove('hidden');
+    }
+
+    // 模块三：单品悬停预览
+    function showImageHover(e, imgUrl, spu, spec, stockout, overdue, orderNo) {
+      const tooltip = document.getElementById('hoverImageTooltip');
+      if (!tooltip) return;
+      document.getElementById('hoverTooltipImg').src = decodeURIComponent(imgUrl);
+      document.getElementById('hoverTooltipOrder').textContent = orderNo || '-';
+      document.getElementById('hoverTooltipSpu').textContent = spu;
+      document.getElementById('hoverTooltipSpec').textContent = spec;
+      document.getElementById('hoverTooltipQty').textContent = `${stockout} 件`;
+      document.getElementById('hoverTooltipOverdue').textContent = `${overdue} 件`;
+      tooltip.classList.remove('hidden');
+      moveImageHover(e);
+    }
+
+    function moveImageHover(e) {
+      const tooltip = document.getElementById('hoverImageTooltip');
+      if (!tooltip || tooltip.classList.contains('hidden')) return;
+
+      const rect = tooltip.getBoundingClientRect();
+      const tooltipW = rect.width || 260;
+      const tooltipH = rect.height || 350;
+
+      const offset = 16;
+      let left = e.clientX + offset;
+      let top = e.clientY + offset;
+
+      if (left + tooltipW > window.innerWidth - 15) left = e.clientX - tooltipW - offset;
+      if (left < 10) left = 10;
+
+      if (top + tooltipH > window.innerHeight - 15) top = e.clientY - tooltipH - offset;
+      if (top < 10) top = 10;
+
+      tooltip.style.left = `${Math.round(left)}px`;
+      tooltip.style.top = `${Math.round(top)}px`;
+    }
+
+    function hideImageHover() {
+      const tooltip = document.getElementById('hoverImageTooltip');
+      if (tooltip) tooltip.classList.add('hidden');
+    }
+
+    function moveSpuHover(e) {
+      const tooltip = document.getElementById('spuVariantHoverTooltip');
+      if (!tooltip || tooltip.classList.contains('hidden')) return;
+
+      const rect = tooltip.getBoundingClientRect();
+      const tooltipW = rect.width || 490;
+      const tooltipH = rect.height || 320;
+
+      const offset = 18;
+      let left = e.clientX + offset;
+      let top = e.clientY + offset;
+
+      // 如果向右溢出视口，则放置在鼠标左侧
+      if (left + tooltipW > window.innerWidth - 15) {
+        left = e.clientX - tooltipW - offset;
+      }
+      if (left < 10) left = 10;
+
+      // 如果向下溢出视口，则向上偏移
+      if (top + tooltipH > window.innerHeight - 15) {
+        top = e.clientY - tooltipH - offset;
+      }
+      if (top < 10) top = 10;
+
+      tooltip.style.left = `${Math.round(left)}px`;
+      tooltip.style.top = `${Math.round(top)}px`;
+    }
+
+    function hideSpuHover() {
+      const tooltip = document.getElementById('spuVariantHoverTooltip');
+      if (tooltip) tooltip.classList.add('hidden');
+    }
+
+    function renderDateStatsBadges(computedList) {
+      const container = document.getElementById('dateStatsBadgeContainer');
+      const dateMap = {};
+      const tailFilter = document.getElementById('detailTailFilter') ? document.getElementById('detailTailFilter').value : 'all';
+
+      let scope = computedList.filter(r => r.isOverdue);
+      if (tailFilter === 'paid') {
+        scope = scope.filter(r => r.isPaid);
+      } else if (tailFilter === 'unpaid') {
+        scope = scope.filter(r => !r.isPaid);
+      }
+
+      scope.forEach(r => {
+        const d = r.statDateStr || '未定日期';
+        dateMap[d] = (dateMap[d] || 0) + (r.stockoutQty || 0);
+      });
+
+      const dates = Object.keys(dateMap).sort();
+      let html = `<span class="text-slate-500 font-medium mr-1"><i class="fa-solid fa-chart-simple mr-1 text-slate-400"></i>各履约/超时日期缺货汇总：</span>`;
+
+      if (dates.length === 0) {
+        html += `<span class="text-slate-400">暂无缺货超时日期</span>`;
+      } else {
+        dates.forEach(d => {
+          html += `
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white border border-red-200 text-slate-700 font-medium text-[11px] shadow-sm">
+              <span class="font-mono text-slate-800">${d}</span>
+              <span class="bg-red-500 text-white font-bold px-1.5 py-0.2 rounded-full text-[10px]">${dateMap[d]}件</span>
+            </span>
+          `;
+        });
+      }
+      container.innerHTML = html;
+    }
+
+    function updateFilterDropdowns() {
+      const groupSelect = document.getElementById('detailGroupFilter');
+      const mod4GroupSelect = document.getElementById('mod4GroupFilter');
+      const groups = new Set();
+      rawData.forEach(r => {
+        if (r.projectGroup) groups.add(r.projectGroup);
+        if (r.channel) groups.add(r.channel);
+      });
+      let gHtml = `<option value="all">所有项目组 / 渠道</option>`;
+      groups.forEach(g => gHtml += `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`);
+      groupSelect.innerHTML = gHtml;
+      mod4GroupSelect.innerHTML = gHtml;
+
+      const dateSelect = document.getElementById('detailDateFilter');
+      const mod4DateSelect = document.getElementById('mod4DateFilter');
+      const computedList = rawData.map(r => computeRecordStatus(r, benchmarkTime));
+      const dateSet = new Set();
+      computedList.forEach(r => {
+        if (r.statDateStr && r.statDateStr !== '-') dateSet.add(r.statDateStr);
+      });
+      const dateArr = Array.from(dateSet).sort();
+      let dHtml = `<option value="all">所有履约/超时日期</option>`;
+      dateArr.forEach(d => dHtml += `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`);
+      dateSelect.innerHTML = dHtml;
+      mod4DateSelect.innerHTML = dHtml;
+    }
+
+    async function fetchImageAsBase64(url, timeoutMs = 4000) {
+      if (!url || !url.trim()) return null;
+      const cleanUrl = url.trim().replace(/^['"]|['"]$/g, '');
+      if (cleanUrl.startsWith('data:image')) return cleanUrl;
+
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+      try {
+        const response = await fetch(cleanUrl, { mode: 'cors', signal: controller.signal });
+        clearTimeout(timer);
+        if (response.ok) {
+          const blob = await response.blob();
+          return await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(blob);
+          });
+        }
+      } catch (err) {
+        clearTimeout(timer);
+      }
+
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        const fallbackTimer = setTimeout(() => {
+          img.src = '';
+          resolve(null);
+        }, timeoutMs);
+
+        img.onload = () => {
+          clearTimeout(fallbackTimer);
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.min(img.naturalWidth || 80, 160);
+            canvas.height = Math.min(img.naturalHeight || 80, 160);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+            resolve(dataUrl);
+          } catch (e) {
+            resolve(null);
+          }
+        };
+        img.onerror = () => {
+          clearTimeout(fallbackTimer);
+          resolve(null);
+        };
+        img.src = cleanUrl;
+      });
+    }
+
+    async function exportDetailExcel() {
+      const exportList = getFilteredSortedDetailItems().map((item, idx) => ({
+        idx: idx + 1,
+        orderNo: item.orderNo,
+        presaleDate: item.presaleDate,
+        payDate: item.payDate,
+        statDate: item.statDate,
+        projectGroup: item.projectGroup,
+        channel: item.channel,
+        spu: item.spu,
+        sku: item.sku,
+        color: item.color,
+        size: item.size,
+        stockoutOverdueQty: item.stockoutOverdueQty,
+        stockoutQty: item.stockoutQty,
+        isOverdue: item.isOverdue,
+        statusText: item.statusText,
+        imgUrl: item.imgUrl
+      }));
+
+      if (exportList.length === 0) {
+        showToast('当前筛选条件下没有可导出的商品数据！', 'info');
+        return;
+      }
+
+      if (typeof ExcelJS === 'undefined') {
+        showToast('检测到未加载 ExcelJS 引擎，降级导出常规表格...', 'warning');
+        const simpleExport = exportList.map((item, idx) => ({
+          '序号': idx + 1,
+          '订单号': item.orderNo,
+          '预售发货时间': item.presaleDate,
+          '支付时间': item.payDate,
+          '履约日期': item.statDate,
+          '项目组': item.projectGroup,
+          '渠道': item.channel,
+          '货号': item.spu,
+          'SKU编码': item.sku,
+          '缺货超时数量': item.stockoutOverdueQty,
+          '缺货数量': item.stockoutQty,
+          '状态标记': item.statusText,
+          '颜色': item.color,
+          '尺码': item.size,
+          '图片链接': item.imgUrl
+        }));
+        const ws = XLSX.utils.json_to_sheet(simpleExport);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "商品缺货明细");
+        XLSX.writeFile(wb, `商品缺货明细_${formatDate(benchmarkTime).replace(/-/g, '')}.xlsx`);
+        return;
+      }
+
+      const modal = document.getElementById('exportProgressModal');
+      const bar = document.getElementById('exportProgressBar');
+      const counter = document.getElementById('exportProgressCounter');
+      modal.classList.remove('hidden');
+      bar.style.width = '0%';
+
+      try {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('商品单品缺货明细清单');
+
+        // 同步重排导出 Excel 表头序列
+        worksheet.columns = [
+          { header: '序号', key: 'idx', width: 8 },
+          { header: '商品主图', key: 'img', width: 14 },
+          { header: '订单号', key: 'orderNo', width: 22 },
+          { header: '预售发货时间', key: 'presaleDate', width: 16 },
+          { header: '支付时间', key: 'payDate', width: 16 },
+          { header: '履约日期', key: 'statDate', width: 15 },
+          { header: '项目组', key: 'projectGroup', width: 16 },
+          { header: '渠道', key: 'channel', width: 16 },
+          { header: '货号', key: 'spu', width: 16 },
+          { header: 'SKU编码', key: 'sku', width: 22 },
+          { header: '缺货超时数量', key: 'stockoutOverdueQty', width: 14 },
+          { header: '缺货数量', key: 'stockoutQty', width: 14 },
+          { header: '状态标记', key: 'statusText', width: 14 },
+          { header: '颜色', key: 'color', width: 12 },
+          { header: '尺码', key: 'size', width: 10 }
+        ];
+
+        const headerRow = worksheet.getRow(1);
+        headerRow.height = 30;
+        headerRow.font = { bold: true, color: { argb: 'FF000000' } };
+        headerRow.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFFF08A' }
+        };
+        headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+
+        const totalItems = exportList.length;
+
+        for (let i = 0; i < totalItems; i++) {
+          const item = exportList[i];
+          const rowNumber = i + 2;
+
+          const row = worksheet.addRow({
+            idx: i + 1,
+            img: '',
+            orderNo: item.orderNo,
+            presaleDate: item.presaleDate,
+            payDate: item.payDate,
+            statDate: item.statDate,
+            projectGroup: item.projectGroup,
+            channel: item.channel,
+            spu: item.spu,
+            sku: item.sku,
+            stockoutOverdueQty: item.stockoutOverdueQty,
+            stockoutQty: item.stockoutQty,
+            statusText: item.statusText,
+            color: item.color,
+            size: item.size
+          });
+
+          row.getCell(3).numFmt = '@';
+          row.height = 60;
+          row.alignment = { vertical: 'middle', horizontal: 'center' };
+
+          if (item.imgUrl) {
+            const b64 = await fetchImageAsBase64(item.imgUrl);
+            if (b64 && b64.includes(',')) {
+              const base64Data = b64.split(',')[1];
+              const imageId = workbook.addImage({
+                base64: base64Data,
+                extension: 'jpeg'
+              });
+              worksheet.addImage(imageId, {
+                tl: { col: 1.1, row: rowNumber - 1 + 0.08 },
+                ext: { width: 56, height: 56 },
+                editAs: 'oneCell'
+              });
+            } else {
+              row.getCell(2).value = item.imgUrl;
+              row.getCell(2).alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+            }
+          }
+
+          const percent = Math.round(((i + 1) / totalItems) * 100);
+          bar.style.width = percent + '%';
+          counter.textContent = `${i + 1} / ${totalItems}`;
+        }
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `商品单品缺货明细_含订单号与超时量_${formatDate(benchmarkTime).replace(/-/g, '')}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(downloadUrl);
+
+        modal.classList.add('hidden');
+        showToast(`成功导出包含真实图片与规范订单号的明细共 ${totalItems} 条！`, 'success');
+      } catch (err) {
+        modal.classList.add('hidden');
+        console.error(err);
+        showToast('带图导出失败：' + err.message, 'error');
+      }
+    }
+
+    async function exportMod4Excel() {
+      const list = getFilteredSortedMod4List().map(x => ({
+        spu: x.spu,
+        imgUrl: x.imgUrl,
+        projectGroup: x.projectGroup,
+        channel: x.channel,
+        skuCount: x.skuCount,
+        totalStockoutQty: x.totalStockoutQty,
+        totalOverdueQty: x.totalOverdueQty,
+        overdueRate: x.totalStockoutQty > 0 ? ((x.totalOverdueQty / x.totalStockoutQty) * 100).toFixed(1) + '%' : '0%',
+        variantDesc: x.variantDesc
+      }));
+
+      if (list.length === 0) {
+        showToast('当前筛选条件下暂无货号数据可供导出！', 'info');
+        return;
+      }
+
+      const modal = document.getElementById('exportProgressModal');
+      const bar = document.getElementById('exportProgressBar');
+      const counter = document.getElementById('exportProgressCounter');
+      document.getElementById('exportProgressTitle').textContent = '正在生成货号汇总带图 Excel 报表';
+      modal.classList.remove('hidden');
+      bar.style.width = '0%';
+
+      try {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('货号维度缺货与超时汇总');
+
+        worksheet.columns = [
+          { header: '序号', key: 'idx', width: 8 },
+          { header: '商品主图', key: 'img', width: 16 },
+          { header: '商品货号 (SPU)', key: 'spu', width: 18 },
+          { header: '项目组 / 渠道', key: 'group', width: 18 },
+          { header: '包含SKU款数', key: 'skuCount', width: 14 },
+          { header: '缺货总数量', key: 'totalStockoutQty', width: 14 },
+          { header: '缺货超时数量', key: 'totalOverdueQty', width: 14 },
+          { header: '超时占比', key: 'overdueRate', width: 12 },
+          { header: '颜色尺码规格明细分布', key: 'variantDesc', width: 45 }
+        ];
+
+        const headerRow = worksheet.getRow(1);
+        headerRow.height = 30;
+        headerRow.font = { bold: true, color: { argb: 'FF000000' } };
+        headerRow.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFE0E7FF' }
+        };
+        headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+
+        const totalItems = list.length;
+
+        for (let i = 0; i < totalItems; i++) {
+          const item = list[i];
+          const rowNumber = i + 2;
+
+          const row = worksheet.addRow({
+            idx: i + 1,
+            img: '',
+            spu: item.spu,
+            group: item.projectGroup,
+            skuCount: item.skuCount,
+            totalStockoutQty: item.totalStockoutQty,
+            totalOverdueQty: item.totalOverdueQty,
+            overdueRate: item.overdueRate,
+            variantDesc: item.variantDesc
+          });
+
+          row.height = 70;
+          row.alignment = { vertical: 'middle', horizontal: 'center' };
+          row.getCell(9).alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+
+          if (item.imgUrl) {
+            const b64 = await fetchImageAsBase64(item.imgUrl);
+            if (b64 && b64.includes(',')) {
+              const base64Data = b64.split(',')[1];
+              const imageId = workbook.addImage({
+                base64: base64Data,
+                extension: 'jpeg'
+              });
+              worksheet.addImage(imageId, {
+                tl: { col: 1.1, row: rowNumber - 1 + 0.08 },
+                ext: { width: 64, height: 64 },
+                editAs: 'oneCell'
+              });
+            } else {
+              row.getCell(2).value = item.imgUrl;
+            }
+          }
+
+          const percent = Math.round(((i + 1) / totalItems) * 100);
+          bar.style.width = percent + '%';
+          counter.textContent = `${i + 1} / ${totalItems}`;
+        }
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `货号维度缺货与超时汇总_含大图_${formatDate(benchmarkTime).replace(/-/g, '')}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(downloadUrl);
+
+        modal.classList.add('hidden');
+        showToast(`成功导出货号汇总共 ${totalItems} 款！`, 'success');
+      } catch (err) {
+        modal.classList.add('hidden');
+        console.error(err);
+        showToast('导出货号汇总失败：' + err.message, 'error');
+      }
+    }
+
+    function openImageModal(imgUrl, spu, sku, spec, stockout, overdue, date, presaleDate, payDate, orderNo) {
+      hideImageHover();
+      hideSpuHover();
+      const modal = document.getElementById('imageModal');
+      document.getElementById('modalImg').src = decodeURIComponent(imgUrl);
+      document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-shirt text-yellow-500 mr-1.5"></i>货号 ${escapeHtml(spu)} 缺货详情`;
+
+      // 切换为模块三单品明细模式
+      document.getElementById('modalDetailContent').classList.remove('hidden');
+      document.getElementById('modalSpuMatrixContent').classList.add('hidden');
+
+      document.getElementById('modalOrder').textContent = orderNo || '-';
+      document.getElementById('modalDate').textContent = date || '-';
+      document.getElementById('modalPresale').textContent = presaleDate || '-';
+      document.getElementById('modalPay').textContent = payDate || '-';
+      document.getElementById('modalSpu').textContent = spu;
+      document.getElementById('modalSku').textContent = sku;
+      document.getElementById('modalSpec').textContent = spec;
+      document.getElementById('modalStockout').textContent = `${stockout} 件`;
+      document.getElementById('modalStockoutOverdue').textContent = `${overdue || 0} 件`;
+      modal.classList.remove('hidden');
+    }
+
+    function closeImageModal() {
+      document.getElementById('imageModal').classList.add('hidden');
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg border text-xs font-medium transition-all duration-300 transform translate-y-2 opacity-0`;
+
+      if (type === 'success') {
+        toast.className += ' bg-emerald-50 text-emerald-800 border-emerald-200';
+        toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i> <span>${escapeHtml(message)}</span>`;
+      } else if (type === 'error') {
+        toast.className += ' bg-red-50 text-red-800 border-red-200';
+        toast.innerHTML = `<i class="fa-solid fa-circle-exclamation text-red-500 text-sm"></i> <span>${escapeHtml(message)}</span>`;
+      } else if (type === 'warning') {
+        toast.className += ' bg-amber-50 text-amber-800 border-amber-200';
+        toast.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm"></i> <span>${escapeHtml(message)}</span>`;
+      } else {
+        toast.className += ' bg-slate-900 text-white border-slate-700';
+        toast.innerHTML = `<i class="fa-solid fa-circle-info text-yellow-400 text-sm"></i> <span>${escapeHtml(message)}</span>`;
+      }
+
+      container.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+    function escapeJs(str) {
+      if (!str) return '';
+      return String(str).replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
+  </script>
+</body>
+</html>
